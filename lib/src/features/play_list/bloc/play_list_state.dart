@@ -6,13 +6,15 @@ abstract class PlayListState {}
 class PlayListInitial extends PlayListState {}
 
 class PlayListLoading extends PlayListState {}
-
+class PlayListVideoFinished extends PlayListState{}
 class PlayListLoaded extends PlayListState {
+
   final Lesson? lesson;
   final Module? module;
   final List<Module> modules;
 
   PlayListLoaded({
+
     required this.lesson,
     required this.module,
     required this.modules,

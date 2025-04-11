@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:learning_app/src/core/constants/api_constants.dart';
 import 'package:learning_app/src/data/model/token_model.dart';
 
@@ -19,10 +22,21 @@ enum AuthStatus {
 }
 
 class AuthService {
-  final Dio _dio = Dio();
+  final Dio _dio;
 
+  AuthService() : _dio = Dio() {
+    // Cấu hình bỏ qua xác thực SSL ngay khi khởi tạo
+    (_dio.httpClientAdapter as IOHttpClientAdapter).onHttpClientCreate =
+        (HttpClient client) {
+      client.badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
+      return client;
+    };
+  }
   Future<AuthResponse> signInWithEmail(String email, String password) async {
     try {
+
+
       final response = await _dio.post(
         Uri.https(ApiConstants.baseUrl, ApiConstants.authLogin).toString(),
         data: {
@@ -63,33 +77,33 @@ class AuthService {
             message: 'Unexpected error occurred',
           );
       }
-    } on DioException catch (e) {
-      // Handle Dio-specific errors
-      if (e.response != null) {
-        switch (e.response!.statusCode) {
-          case 404:
-            return AuthResponse(
-              status: AuthStatus.userNotFound,
-              message: 'User not found',
-            );
-          case 401:
-            return AuthResponse(
-              status: AuthStatus.invalidPassword,
-              message: 'Invalid password',
-            );
-          default:
-            return AuthResponse(
-              status: AuthStatus.unauthenticated,
-              message: e.response?.data['message'] ?? 'Login failed',
-            );
-        }
-      }
-
-      // Network or other errors
-      return AuthResponse(
-        status: AuthStatus.unknown,
-        message: 'Network error: ${e.message}',
-      );
+    // } on DioException catch (e) {
+    //   // Handle Dio-specific errors
+    //   if (e.response != null) {
+    //     switch (e.response!.statusCode) {
+    //       case 404:
+    //         return AuthResponse(
+    //           status: AuthStatus.userNotFound,
+    //           message: 'User not found',
+    //         );
+    //       case 401:
+    //         return AuthResponse(
+    //           status: AuthStatus.invalidPassword,
+    //           message: 'Invalid password',
+    //         );
+    //       default:
+    //         return AuthResponse(
+    //           status: AuthStatus.unauthenticated,
+    //           message: e.response?.data['message'] ?? 'Login failed',
+    //         );
+    //     }
+    //   }
+    //
+    //   // Network or other errors
+    //   return AuthResponse(
+    //     status: AuthStatus.unknown,
+    //     message: 'Network error: ${e.message}',
+    //   );
     } catch (e) {
       // Catch any other unexpected errors
       return AuthResponse(

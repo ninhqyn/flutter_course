@@ -38,10 +38,12 @@ final class VideoFinished extends PlayListEvent {
   final Module currentModule;
   final Lesson currentLesson;
   final List<Module> allModules;
+  final int courseId;
 
   VideoFinished({
     required this.currentModule,
     required this.currentLesson,
     required this.allModules,
+    required this.courseId
   });
 }

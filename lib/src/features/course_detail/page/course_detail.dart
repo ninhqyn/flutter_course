@@ -12,6 +12,8 @@ import 'package:learning_app/src/data/repositories/rating_repository.dart';
 import 'package:learning_app/src/data/repositories/skill_repository.dart';
 
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:learning_app/src/features/instructor_page/page/instructor_page.dart';
+import 'package:learning_app/src/features/payment/page/paymet_page.dart';
 import 'package:learning_app/src/features/review/page/review_page.dart';
 import 'package:learning_app/src/shared/models/course.dart';
 import 'package:learning_app/src/shared/models/instructor.dart';
@@ -100,6 +102,7 @@ class _CourseDetailState extends State<CourseDetail> {
             ),
             const SizedBox(width: 10,),
             TextButton(onPressed: (){
+              Navigator.push(context, MaterialPageRoute(builder: (_)=> PaymentPage(course: widget.course,)));
             }, style: TextButton.styleFrom(
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(5)
@@ -231,7 +234,7 @@ class _CourseDetailState extends State<CourseDetail> {
         Row(
           children: [
             CircleAvatar(
-                child: Image.network(
+                child: Image.asset(
                   "assets/images/background_login.png",
                   errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
                     return Image.asset('assets/images/background_login.png',width: 40,height: 40,);
@@ -342,6 +345,7 @@ class _CourseDetailState extends State<CourseDetail> {
                   return ListView.separated(
                       itemCount: state.modules.length,
                       shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
                       itemBuilder: (context,index){
                         return ExpandableModuleWidget(module: state.modules[index]);
                       }, separatorBuilder: (BuildContext context, int index) {
@@ -367,7 +371,11 @@ class _CourseDetailState extends State<CourseDetail> {
                     itemCount: state.instructors.length,
                     shrinkWrap: true,
                     itemBuilder: (context,index){
-                      return _instructorWidget( state.instructors[index]);
+                      return InkWell(onTap: (){
+                        Navigator.push(context, MaterialPageRoute(builder: (_){
+                          return InstructorPage(instructor: state.instructors[index],);
+                        }));
+                      },child: _instructorWidget( state.instructors[index]));
                     }, separatorBuilder: (BuildContext context, int index)=> const SizedBox(height: 15,),);
                 }
                 return const Text('Instructor null');

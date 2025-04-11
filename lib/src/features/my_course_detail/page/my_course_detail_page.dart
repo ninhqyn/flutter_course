@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:learning_app/src/data/model/quiz.dart';
 import 'package:learning_app/src/data/model/user_lesson.dart';
 import 'package:learning_app/src/data/repositories/course_repository.dart';
+import 'package:learning_app/src/data/repositories/lesson_repository.dart';
 import 'package:learning_app/src/data/repositories/module_repository.dart';
 import 'package:learning_app/src/data/repositories/quiz_repository.dart';
 import 'package:learning_app/src/features/my_course_detail/bloc/my_course_detail_bloc.dart';
@@ -10,7 +11,6 @@ import 'package:learning_app/src/features/my_course_detail/widget/my_module_item
 import 'package:learning_app/src/features/play_list/bloc/play_list_bloc.dart';
 import 'package:learning_app/src/features/play_list/page/video_course_page.dart';
 import 'package:learning_app/src/features/quiz/page/quiz_screen.dart';
-import 'package:learning_app/src/shared/models/lesson.dart';
 
 class MyCourseDetailPage extends StatefulWidget {
   final int courseId;
@@ -24,18 +24,14 @@ class MyCourseDetailPage extends StatefulWidget {
 class _MyCourseDetailPageState extends State<MyCourseDetailPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  late MyCourseDetailBloc myCourseDetailBloc;
+
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    myCourseDetailBloc = MyCourseDetailBloc(
-        courseRepository: context.read<CourseRepository>(),
-        moduleRepository: context.read<ModuleRepository>(),
-      quizRepository: context.read<QuizRepository>()
-    )
-      ..add(FetchDataMyCourseDetail(widget.courseId));
+
+      context.read<MyCourseDetailBloc>().add(FetchDataMyCourseDetail(widget.courseId));
   }
 
   @override
@@ -46,57 +42,53 @@ class _MyCourseDetailPageState extends State<MyCourseDetailPage>
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider.value(
-
-      value: myCourseDetailBloc,
-      child: SafeArea(
-        child: Scaffold(
-          appBar: AppBar(
-            title: const Text('My Course Detail'),
-            bottom: TabBar(
-              controller: _tabController,
-              tabs: [
-                Tab(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: const Text(
-                      'Nội dung khóa học',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-                Tab(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: const Text(
-                      'Bài kiểm tra',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          body: TabBarView(
+    return SafeArea(
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('My Course Detail'),
+          bottom: TabBar(
             controller: _tabController,
-            children: [
-              // Tab 1: Nội dung khóa học (Module, bài học)
-              SingleChildScrollView(
-                child: _buildCourseContentTab(),
+            tabs: [
+              Tab(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: const Text(
+                    'Nội dung khóa học',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               ),
-
-              // Tab 2: Bài kiểm tra (Quiz)
-              SingleChildScrollView(
-                child: _buildQuizTab(),
+              Tab(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: const Text(
+                    'Bài kiểm tra',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
+        ),
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            // Tab 1: Nội dung khóa học (Module, bài học)
+            SingleChildScrollView(
+              child: _buildCourseContentTab(),
+            ),
+
+            // Tab 2: Bài kiểm tra (Quiz)
+            SingleChildScrollView(
+              child: _buildQuizTab(),
+            ),
+          ],
         ),
       ),
     );
@@ -133,7 +125,7 @@ class _MyCourseDetailPageState extends State<MyCourseDetailPage>
                       return MyModuleItem(module: state.modules[index], onLessonTap: (UserLesson lesson) {
                         Navigator.push(context, MaterialPageRoute(builder: (_){
                           return BlocProvider(
-                            create: (context) => PlayListBloc(moduleRepository: context.read<ModuleRepository>()),
+                            create: (context) => PlayListBloc(moduleRepository: context.read<ModuleRepository>(), lessonRepository: context.read<LessonRepository>()),
                             child: VideoCoursePage(courseId: widget.courseId, moduleId: state.modules[index].moduleId, lessonId: lesson.lessonId,),
                           );
                         }));

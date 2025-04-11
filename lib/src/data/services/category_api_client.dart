@@ -1,12 +1,23 @@
 
+import 'dart:io';
+
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:learning_app/src/core/constants/api_constants.dart';
 import 'package:learning_app/src/core/network/interceptor/token_interceptor.dart';
 import 'package:learning_app/src/shared/models/category.dart';
 
 class CategoryApiClient {
   final Dio _dio;
-  CategoryApiClient({Dio? dio}) : _dio = dio ?? Dio();
+  CategoryApiClient({Dio? dio}) : _dio = dio ?? Dio() {
+    // Cấu hình bỏ qua chứng chỉ SSL tại đây
+    (_dio.httpClientAdapter as IOHttpClientAdapter).onHttpClientCreate =
+        (HttpClient client) {
+      client.badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
+      return client;
+    };
+  }
 
   Future<List<Category>> getAllCategories() async {
     final request = Uri.https(ApiConstants.baseUrl, ApiConstants.category).toString();

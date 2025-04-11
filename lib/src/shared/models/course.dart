@@ -7,8 +7,8 @@ class Course {
   final Category category;
   final String courseName;
   final String description;
-  final int price;
-  final int discountPercentage;
+  final double price;
+  final double discountPercentage;
   final String? thumbnailUrl;
   final int durationHours;
   final String difficultyLevel;

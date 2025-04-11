@@ -33,8 +33,10 @@ class _HomePageState extends State<HomePage> {
           index: indexSelected,
           children: const [
             ExplorePage(),
+
             SearchPage(),
             MyCoursePage(),
+
             ProfilePage(),
           ],
         ),

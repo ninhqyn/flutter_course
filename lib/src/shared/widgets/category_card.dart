@@ -74,6 +74,8 @@ class CategoryCard extends StatelessWidget {
             child: Text(
               category.description,
               textAlign: TextAlign.center,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontSize: 13,
                 color: Colors.black.withOpacity(0.7),

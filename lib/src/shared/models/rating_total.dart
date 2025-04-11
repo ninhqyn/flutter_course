@@ -12,8 +12,8 @@ class RatingTotal {
   factory RatingTotal.fromJson(Map<String, dynamic> json) {
     return RatingTotal(
       courseId: json['courseId'],
-      ratingValue: json['ratingValue'],
-      totalRating: json['totalRating'],
+      ratingValue: (json['ratingValue'] as num).toDouble(),
+      totalRating: (json['totalRating'] as num).toInt(),
     );
   }
 

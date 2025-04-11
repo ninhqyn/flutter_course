@@ -1,5 +1,5 @@
 class ApiConstants{
-  static const String baseUrl ='localhost:7287';
+  static const String baseUrl ='10.0.2.2:7287';
 
   //Course
   static const String courses ='/api/Course';
@@ -39,5 +39,8 @@ class ApiConstants{
   //Quiz
   static const String quiz = '/api/Quiz';
   static const String quizByCourse = '/api/Quiz/course';
+
+  //Lesson
+  static const String lessonProgress = '/api/Lesson/progress';
 
 }

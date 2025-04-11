@@ -7,3 +7,4 @@ final class FetchDataMyCourseDetail extends MyCourseDetailEvent{
 
   FetchDataMyCourseDetail(this.courseId);
 }
+final class UpdateDataModule extends MyCourseDetailEvent{}

@@ -1,4 +1,6 @@
 import 'package:bloc/bloc.dart';
+import 'package:learning_app/src/data/model/post_lesson_progress.dart';
+import 'package:learning_app/src/data/repositories/lesson_repository.dart';
 import 'package:learning_app/src/data/repositories/module_repository.dart';
 import 'package:learning_app/src/shared/models/lesson.dart';
 import 'package:learning_app/src/shared/models/module.dart';
@@ -9,9 +11,10 @@ part 'play_list_state.dart';
 
 class PlayListBloc extends Bloc<PlayListEvent, PlayListState> {
   final ModuleRepository moduleRepository;
-
+  final LessonRepository lessonRepository;
   PlayListBloc({
-    required this.moduleRepository
+    required this.moduleRepository,
+    required this.lessonRepository
   }) : super(PlayListInitial()) {
     on<FetchDataPlayList>(_onFetchDataPlayList);
     on<SelectedModule>(_onSelectedModule);
@@ -50,18 +53,39 @@ class PlayListBloc extends Bloc<PlayListEvent, PlayListState> {
       emit(PlayListError(message: e.toString()));
     }
   }
-  void _onVideoFinished(
+  Future<void> _onVideoFinished(
       VideoFinished event,
-      Emitter<PlayListState> emit
-      ) {
+      Emitter<PlayListState> emit,
+      ) async {
     try {
-      print('next video');
+
+      print('Video finished, moving to next video.');
+
+      // Cập nhật tiến độ học tập
+      if (state is PlayListLoaded) {
+        final currentState = state as PlayListLoaded;
+        final progress = PostLessonProgress(
+          lessonId: currentState.lesson!.lessonId,
+          courseId: event.courseId,
+          isCompleted: true,
+          lastPositionSeconds: 10, // Có thể thay đổi tùy vào logic của bạn
+          timeSpentMinutes: 10, // Tính toán thời gian học
+        );
+        if (await lessonRepository.createOrUpdate(progress)) {
+          print('Lesson progress updated');
+          emit(PlayListVideoFinished());
+          emit(currentState);
+        } else {
+          print('Failed to update lesson progress');
+        }
+      }
+      //await Future.delayed(const Duration(seconds: 2));
       // Tìm bài học tiếp theo trong module hiện tại
       final currentLessonIndex = event.currentModule.lessons
           .indexWhere((l) => l.lessonId == event.currentLesson.lessonId);
 
-      // Nếu còn bài học trong module hiện tại
       if (currentLessonIndex < event.currentModule.lessons.length - 1) {
+        // Chuyển sang bài học tiếp theo trong module
         final nextLesson = event.currentModule.lessons[currentLessonIndex + 1];
         emit(PlayListLoaded(
           lesson: nextLesson,
@@ -87,7 +111,7 @@ class PlayListBloc extends Bloc<PlayListEvent, PlayListState> {
         }
       }
 
-      // Nếu đã học xong tất cả các bài
+      // Nếu đã học xong tất cả các bài học, giữ nguyên trạng thái hiện tại hoặc thông báo kết thúc
       emit(PlayListLoaded(
         lesson: event.currentLesson,
         module: event.currentModule,
@@ -97,6 +121,7 @@ class PlayListBloc extends Bloc<PlayListEvent, PlayListState> {
       emit(PlayListError(message: e.toString()));
     }
   }
+
 
   void _onSelectedModule(
       SelectedModule event,

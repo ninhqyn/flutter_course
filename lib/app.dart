@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:learning_app/src/core/routes/routes_name.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:learning_app/src/data/repositories/lesson_repository.dart';
 import 'package:learning_app/src/data/repositories/quiz_repository.dart';
 import 'package:learning_app/src/data/repositories/user_repository.dart';
 
@@ -16,15 +17,16 @@ import 'package:learning_app/src/data/repositories/rating_repository.dart';
 import 'package:learning_app/src/data/repositories/skill_repository.dart';
 
 import 'package:learning_app/src/data/services/instructor_service.dart';
+import 'package:learning_app/src/data/services/lesson_service.dart';
 import 'package:learning_app/src/data/services/module_service.dart';
 import 'package:learning_app/src/data/services/quiz_service.dart';
 import 'package:learning_app/src/data/services/rating_service.dart';
 import 'package:learning_app/src/data/services/skill_service.dart';
 import 'package:learning_app/src/data/services/user_service.dart';
-
-
-
-
+import 'package:learning_app/src/features/my_course/bloc/my_course_bloc.dart';
+import 'package:learning_app/src/features/my_course_detail/bloc/my_course_detail_bloc.dart';
+import 'package:learning_app/src/features/payment/page/paymet_page.dart';
+import 'package:learning_app/src/features/payment/page/paymet_result.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'src/core/routes/routes.dart';
@@ -57,6 +59,7 @@ class _AppState extends State<App> {
   late final AuthRepository _authRepository;
   late final UserRepository _userRepository;
   late final QuizRepository _quizRepository;
+  late final LessonRepository _lessonRepository;
   @override
   void initState() {
     super.initState();
@@ -70,6 +73,7 @@ class _AppState extends State<App> {
     _ratingRepository = RatingRepository(ratingService: RatingService());
     _userRepository = UserRepository(userService: UserService(_authRepository));
     _quizRepository = QuizRepository(quizService: QuizService());
+    _lessonRepository = LessonRepository(lessonService: LessonService(_authRepository));
 
   }
 
@@ -104,28 +108,38 @@ class _AppState extends State<App> {
         RepositoryProvider(
           create: (context) => _quizRepository,
         ),
+        RepositoryProvider(
+          create: (context) => _lessonRepository,
+        ),
+
 
       ],
         child: MultiBlocProvider(
           providers: [
-            BlocProvider(create: (_) {  // Đúng
+            BlocProvider(create: (_) {
               return ExploreBloc(
                   courseRepository: _courseRepository,
                   categoryRepository: _categoryRepository
               );
             }),
-            BlocProvider(create: (_) {  // Đúng
+            BlocProvider(create: (_) {
               return CourseByCategoryBloc(courseRepository: _courseRepository);
             }),
-            BlocProvider(create: (_) {  // Đúng
+            BlocProvider(create: (_) {
               return SearchBloc(
                   categoryRepository: _categoryRepository,
                   courseRepository: _courseRepository
               );
             }),
-            BlocProvider(create: (_) {  // Đúng
+            BlocProvider(create: (_) {
               return AuthBloc(authRepository: _authRepository);
             }),
+            BlocProvider(create: (_){
+              return MyCourseBloc(courseRepository: _courseRepository)..add(FetchDataMyCourse());
+            }),
+            BlocProvider(create: (_){
+              return MyCourseDetailBloc(courseRepository: _courseRepository, moduleRepository: _moduleRepository, quizRepository: _quizRepository);
+            })
           ],
           child: const AppView(),
         )
@@ -149,8 +163,6 @@ class _AppViewState extends State<AppView> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      useInheritedMediaQuery: true,
-      locale: DevicePreview.locale(context),
       navigatorKey: _navigatorKey,
       builder: (context, child) {
         child = DevicePreview.appBuilder(context, child);

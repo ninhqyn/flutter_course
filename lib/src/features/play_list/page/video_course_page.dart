@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:learning_app/src/features/my_course/bloc/my_course_bloc.dart';
+import 'package:learning_app/src/features/my_course_detail/bloc/my_course_detail_bloc.dart';
 import 'package:learning_app/src/features/play_list/bloc/play_list_bloc.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
@@ -27,7 +29,7 @@ class _VideoCoursePageState extends State<VideoCoursePage> {
   late VideoPlayerController _videoPlayerController;
   ChewieController? _chewieController;
   bool _isInitialized = false;
-
+  bool _hasVideoFinished = false;
   // Store the current lesson and all lessons from the module
   Lesson? _currentLesson;
   List<Lesson> _lessons = [];
@@ -103,19 +105,7 @@ class _VideoCoursePageState extends State<VideoCoursePage> {
     });
   }
 
-  void _changeVideo(Lesson lesson) {
-    if (_isInitialized) {
-      _videoPlayerController.pause();
-      _videoPlayerController.dispose();
-      _chewieController?.dispose();
-    }
 
-    setState(() {
-      _isInitialized = false;
-    });
-
-    _initializePlayer(lesson);
-  }
 
 
   void _onModuleSelected(int moduleId) {
@@ -139,11 +129,15 @@ class _VideoCoursePageState extends State<VideoCoursePage> {
     }
   }
   void _onVideoPositionChanged() {
-    if (_videoPlayerController.value.position >= _videoPlayerController.value.duration) {
-      // Video đã kết thúc
+    if (!_hasVideoFinished &&
+        _videoPlayerController.value.position >= _videoPlayerController.value.duration) {
+      // Đặt flag để đánh dấu đã xử lý event này
+      _hasVideoFinished = true;
+
       if (mounted && _currentModule != null && _currentLesson != null) {
         context.read<PlayListBloc>().add(
           VideoFinished(
+            courseId: widget.courseId,
             currentModule: _currentModule!,
             currentLesson: _currentLesson!,
             allModules: _allModules,
@@ -153,10 +147,34 @@ class _VideoCoursePageState extends State<VideoCoursePage> {
     }
   }
 
+  void _changeVideo(Lesson lesson) {
+    if (_isInitialized) {
+      _videoPlayerController.pause();
+      _videoPlayerController.dispose();
+      _chewieController?.dispose();
+    }
+
+    setState(() {
+      _isInitialized = false;
+      // Reset flag khi chuyển video mới
+      _hasVideoFinished = false;
+    });
+
+    _initializePlayer(lesson);
+  }
+
+
+
+
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<PlayListBloc, PlayListState>(
       listener: (context, state) {
+        if(state is PlayListVideoFinished){
+          context.read<MyCourseDetailBloc>().add(UpdateDataModule());
+          context.read<MyCourseBloc>().add(FetchDataMyCourse());
+        }
         if (state is PlayListLoaded) {
           setState(() {
             _currentModule = state.module;

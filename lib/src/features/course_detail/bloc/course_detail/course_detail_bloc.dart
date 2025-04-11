@@ -33,32 +33,35 @@ class CourseDetailBloc extends Bloc<CourseDetailEvent, CourseDetailState> {
 
   Future<void> _onFetchDataCourseDetail(FetchDataCourseDetail event, Emitter<CourseDetailState> emit) async {
     try {
-
+      final rating = await ratingRepository.getRatingTotalCourseId(event.courseId);
+      emit(CourseDetailLoaded(
+          courseId:event.courseId,
+          skills: const<Skill>[],
+          instructors: const<Instructor>[],
+          modules: const<Module>[],
+          courses: const<Course>[],
+          rating: rating)
+      );
       final result = await Future.wait([
         skillRepository.getAllSkillByCourseId(event.courseId),
         instructorRepository.getAllInstructorByCourseId(event.courseId),
         moduleRepository.getAllModuleByCourseId(event.courseId),
         courseRepository.getCourseByCategoryId(event.categoryId),
-        ratingRepository.getRatingTotalCourseId(event.courseId)
       ]);
       final skills = result[0] as List<Skill>;
       final instructor = result[1] as List<Instructor>;
       final modules = result[2] as List<Module>;
       final courses = result[3] as List<Course>;
-      final rating = result[4] as RatingTotal;
-
       final filteredCourses = courses.where((course) => course.courseId != event.courseId).toList();
-
-      // Emit state với dữ liệu đã xử lý
-      emit(CourseDetailLoaded(
-          courseId: event.courseId,
+      if(state is CourseDetailLoaded){
+        final currentState = state as CourseDetailLoaded;
+        emit(currentState.copyWith(
           skills: skills,
           instructors: instructor,
           modules: modules,
-          courses: filteredCourses,
-          rating: rating
-      ));
-
+          courses: filteredCourses
+        ));
+      }
       print('fetch data course detail ${event.courseId}');
     } catch (e) {
       print('Error fetching data: $e');

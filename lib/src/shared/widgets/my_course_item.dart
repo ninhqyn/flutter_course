@@ -67,13 +67,13 @@ class MyCourseItem extends StatelessWidget {
                     Expanded(
                       child: LinearProgressIndicator(
                         minHeight: 4,
-                        value: course.progress,
+                        value: course.progress/100,
                         borderRadius: const BorderRadius.all(Radius.circular(10)),
 
                       ),
                     ),
                     const SizedBox(width: 5,),
-                    Text('100\%')
+                    Text('${course.progress} %')
                   ],
                 ),
               ],

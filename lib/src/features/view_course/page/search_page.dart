@@ -84,22 +84,26 @@ class _SearchPageState extends State<SearchPage> {
               ),
             ),
             const SizedBox(height: 10),
-            MasonryGridView.count(
-              physics: const NeverScrollableScrollPhysics(),
-              shrinkWrap: true,
-              crossAxisCount: 2,
-              mainAxisSpacing: 10,
-              crossAxisSpacing: 10,
-              itemCount: categories.length,
-              itemBuilder: (context, index) {
-                return InkWell(onTap: (){
-                  Navigator.push(context, MaterialPageRoute(builder: (_){
+          GridView.count(
+            physics: NeverScrollableScrollPhysics(), // không scroll
+            shrinkWrap: true, // chiếm không gian vừa đủ
+            crossAxisCount: 2, // 2 cột
+            mainAxisSpacing: 10,
+            crossAxisSpacing: 10,
+            childAspectRatio:  2/ 2.8, // điều chỉnh tỉ lệ ngang / dọc
+            children: List.generate(categories.length, (index) {
+              return InkWell(
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) {
                     return AllCourseByCategory(category: categories[index]);
                   }));
-                },child: CategoryCard(category: categories[index]));
-              },
-            ),
-            const SizedBox(height: 20),
+                },
+                child: CategoryCard(category: categories[index]),
+              );
+            }),
+          ),
+
+          const SizedBox(height: 20),
           ],
         ),
       ),

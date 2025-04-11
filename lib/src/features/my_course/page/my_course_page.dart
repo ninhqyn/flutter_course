@@ -16,39 +16,36 @@ class MyCoursePage extends StatelessWidget {
   Widget build(BuildContext context) {
 
 
-    return BlocProvider(
-  create: (context) => MyCourseBloc(courseRepository: context.read<CourseRepository>())..add(FetchDataMyCourse()),
-  child: SafeArea(
-        child: Scaffold(
-          appBar: _appBar(context),
-          body: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.only(left: 16,right: 16,top: 16),
-              child: BlocBuilder<MyCourseBloc, MyCourseState>(
-                builder: (context, state) {
-                  if(state is MyCourseLoaded){
-                    final myCourse = state.myCourse;
-                    if(myCourse.isNotEmpty){
-                      return ListView.builder(itemCount: myCourse.length,shrinkWrap: true,itemBuilder: (context,index){
-                        return InkWell(onTap: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (_){
-                            return MyCourseDetailPage(courseId: myCourse[index].courseId);
-                          }));
-                        },child: MyCourseItem(course: myCourse[index]));
-                      });
+    return SafeArea(
+          child: Scaffold(
+            appBar: _appBar(context),
+            body: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 16,right: 16,top: 16),
+                child: BlocBuilder<MyCourseBloc, MyCourseState>(
+                  builder: (context, state) {
+                    if(state is MyCourseLoaded){
+                      final myCourse = state.myCourse;
+                      if(myCourse.isNotEmpty){
+                        return ListView.builder(itemCount: myCourse.length,shrinkWrap: true,itemBuilder: (context,index){
+                          return InkWell(onTap: (){
+                            Navigator.push(context, MaterialPageRoute(builder: (_){
+                              return MyCourseDetailPage(courseId: myCourse[index].courseId);
+                            }));
+                          },child: MyCourseItem(course: myCourse[index]));
+                        });
+                      }
+                      return _noCourse(context);
                     }
-                    return _noCourse(context);
-                  }
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                },
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  },
+                ),
               ),
             ),
-          ),
-        )
-    ),
-);
+          )
+      );
   }
 
   Widget _noCourse(BuildContext context) {

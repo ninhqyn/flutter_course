@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:flutter/material.dart';
 import 'package:learning_app/src/core/constants/api_constants.dart';
+import 'package:learning_app/src/core/network/interceptor/token_interceptor.dart';
 import 'package:learning_app/src/data/repositories/auth_repository.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -41,37 +42,17 @@ class VnPayService {
     };
 
   }
-  // Khởi tạo xử lý app links để nhận kết quả thanh toán
-  Future<void> initAppLinks({
-    required Function(Map<String, String>) onPaymentSuccess,
-    required Function(Map<String, String>) onPaymentFailure,
-  }) async {
-    _onPaymentSuccess = onPaymentSuccess;
-    _onPaymentFailure = onPaymentFailure;
-
-    try {
-      // Xử lý app link khi app mở từ url (cold start)
-      final uri = await _appLinks.getInitialLink();
-      if (uri != null) {
-        _handleAppLink(uri);
-      }
-      _appLinks.uriLinkStream.listen((uri) {
-        _handleAppLink(uri);
-      });
-    } catch (e) {
-      debugPrint('Error setting up app links: $e');
-    }
-  }
-
   Future<String?> createVnPayPayment({
     required double amount,
     required String orderDescription,
     String bankCode = '',
     String language = 'vn',
     String orderType = 'billpayment',
+    required int courseId,
     Function(String)? onOrderCreated,
   }) async {
     try {
+      _dio.interceptors.add(TokenInterceptor(authRepository: _authRepository, dio: _dio));
       // Tạo unique orderId
       final orderId = 'ORDER${DateTime.now().millisecondsSinceEpoch}';
       final response = await _dio.post(
@@ -83,7 +64,7 @@ class VnPayService {
           'bankCode': bankCode,
           'language': language,
           'orderType': orderType,
-          'returnUrl': 'com.example.learning_app:///payment-result', // URL scheme cho app link
+          'courseId': courseId, // URL scheme cho app link
         },
       );
 

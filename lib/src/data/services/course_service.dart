@@ -183,5 +183,21 @@ class CourseService {
       rethrow;
     }
   }
+  Future<bool> checkEnrollment(int courseId) async {
+    try {
+      _dio.interceptors.add(TokenInterceptor(authRepository: _authRepository, dio: _dio));
+      final response = await _dio.get('${ApiConstants.checkEnrollment}/$courseId');
+      if (response.statusCode == 200) {
+        final data = response.data;
+        final isEnrolled = data['isEnrolled'] as bool;
+        return isEnrolled;
+      }
+
+      return false;
+    } on DioException catch (e) {
+      rethrow;
+    }
+  }
+
 
 }

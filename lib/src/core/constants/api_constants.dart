@@ -9,6 +9,7 @@ class ApiConstants{
   static const String courseFavorite ='/api/Course/favorites';
   static const String courseFilter = '/api/Course/filter';
   static const String userCourse = '/api/Course/user-courses';
+  static const String checkEnrollment = '/api/Course/check-enrollment';
   //Category
   static const String category='api/Category';
 

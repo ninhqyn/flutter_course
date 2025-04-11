@@ -7,7 +7,10 @@ final class CourseDetailInitial extends CourseDetailState {
   @override
   List<Object?> get props =>[];
 }
-
+final class CourseDetailLoading extends CourseDetailState{
+  @override
+  List<Object?> get props => [];
+}
 final class CourseDetailLoaded extends CourseDetailState{
   final int courseId;
   final List<Skill> skills;
@@ -15,13 +18,15 @@ final class CourseDetailLoaded extends CourseDetailState{
   final List<Module> modules;
   final List<Course> courses;
   final RatingTotal rating;
+  final bool isEnrollment;
   CourseDetailLoaded({
     required this.courseId,
     required this.skills,
     required this.instructors,
     required this.modules,
     required this.courses,
-    required this.rating
+    required this.rating,
+    this.isEnrollment = false
 });
   CourseDetailLoaded copyWith({
     int? courseId,
@@ -29,7 +34,8 @@ final class CourseDetailLoaded extends CourseDetailState{
     List<Instructor>? instructors,
     List<Module>? modules,
     List<Course>? courses,
-    RatingTotal? rating
+    RatingTotal? rating,
+    bool? isEnrollment
 }){
     return CourseDetailLoaded(
         courseId: courseId ?? this.courseId,
@@ -37,7 +43,8 @@ final class CourseDetailLoaded extends CourseDetailState{
         instructors: instructors ?? this.instructors,
         modules: modules ?? this.modules,
         courses: courses ?? this.courses,
-        rating: rating ?? this.rating
+        rating: rating ?? this.rating,
+        isEnrollment: isEnrollment ?? this.isEnrollment
     );
   }
   @override
@@ -47,7 +54,8 @@ final class CourseDetailLoaded extends CourseDetailState{
     instructors,
     modules,
     courses,
-    rating
+    rating,
+    isEnrollment
   ];
 }
 final class CourseDetailError extends CourseDetailState{

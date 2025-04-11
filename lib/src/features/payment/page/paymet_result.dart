@@ -1,11 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:learning_app/app.dart';
 import 'package:learning_app/src/data/model/result_model.dart';
+import 'package:learning_app/src/features/course_detail/bloc/course_detail/course_detail_bloc.dart';
+import 'package:learning_app/src/features/my_course/bloc/my_course_bloc.dart';
+import 'package:learning_app/src/features/my_course_detail/bloc/my_course_detail_bloc.dart';
 import 'package:learning_app/src/shared/utils/date_time_util.dart';
 
-class PaymentResult extends StatelessWidget {
+class PaymentResult extends StatefulWidget {
   final ModelResult result;
   const PaymentResult({super.key, required this.result,});
+
+  @override
+  State<PaymentResult> createState() => _PaymentResultState();
+}
+
+class _PaymentResultState extends State<PaymentResult> {
 
   @override
   Widget build(BuildContext context) {
@@ -40,12 +51,12 @@ class PaymentResult extends StatelessWidget {
   Widget _buildResultHeader() {
     return Column(
       children: [
-        result.isSuccess
+        widget.result.isSuccess
             ? Image.asset(
           'assets/images/payment_success.png',
           height: 120,
         )
-            : result.responseCode =='24'? const Icon(
+            : widget.result.responseCode =='24'? const Icon(
           Icons.cancel,
           size: 120,
           color: Colors.red,
@@ -55,26 +66,26 @@ class PaymentResult extends StatelessWidget {
           color: Colors.red,
         ),
         const SizedBox(height: 24),
-        result.isSuccess ?
+        widget.result.isSuccess ?
         Text(
           'Đăng ký thành công!',
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
-            color: result.isSuccess ? Colors.lightBlue : Colors.red,
+            color: widget.result.isSuccess ? Colors.lightBlue : Colors.red,
           ),
         ):Text(
-          result.responseCode =='24' ? 'Giao dịch đã bị hủy!':'Có lỗi xảy ra!',
+          widget.result.responseCode =='24' ? 'Giao dịch đã bị hủy!':'Có lỗi xảy ra!',
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
-            color: result.isSuccess ? Colors.lightBlue : Colors.red,
+            color: widget.result.isSuccess ? Colors.lightBlue : Colors.red,
           ),
         ),
         const SizedBox(height: 12),
-        if(result.isSuccess)
+        if(widget.result.isSuccess)
         Text(
-          NumberFormat.currency(locale: 'vi_VN', symbol: 'đ').format(result.amount),
+          NumberFormat.currency(locale: 'vi_VN', symbol: 'đ').format(widget.result.amount),
           style: const TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
@@ -93,13 +104,13 @@ class PaymentResult extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _buildDetailRow('Mã giao dịch', result.transactionId),
+          _buildDetailRow('Mã giao dịch', widget.result.transactionId),
           const Divider(height: 24),
-          _buildDetailRow('Nội dung', result.content),
+          _buildDetailRow('Nội dung', widget.result.content),
           const Divider(height: 24),
           _buildDetailRow(
             'Thời gian',
-            DateTimeUtil.formatFromRawString (result.payDate),
+            DateTimeUtil.formatFromRawString (widget.result.payDate),
           ),
         ],
       ),
@@ -131,7 +142,7 @@ class PaymentResult extends StatelessWidget {
   Widget _buildButtons(BuildContext context) {
     return Column(
       children: [
-        if(result.isSuccess)
+        if(widget.result.isSuccess)
         SizedBox(
           width: double.infinity,
           height: 50,
@@ -168,7 +179,7 @@ class PaymentResult extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 side: BorderSide(color: Colors.grey[300]!),
               ),
-              backgroundColor: result.isSuccess ? Colors.white :Colors.lightBlue
+              backgroundColor: widget.result.isSuccess ? Colors.white :Colors.lightBlue
             ),
             child: const Text(
               'Về trang chủ',
@@ -181,5 +192,15 @@ class PaymentResult extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if(widget.result.isSuccess){
+      //update
+      context.read<MyCourseBloc>().add(FetchDataMyCourse());
+      context.read<CourseDetailBloc>().add(UpdateEnrollment(courseId:widget.result.courseId));
+    }
   }
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:learning_app/src/features/payment/page/paymet_page.dart';
 import 'package:learning_app/src/shared/models/course.dart';
+import 'package:learning_app/src/shared/utils/price_format.dart';
 
 
 class CourseAllItem extends StatelessWidget {
@@ -68,7 +70,7 @@ class CourseAllItem extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '${course.price} vnđ',
+                      course.price.toCurrencyVND(),
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                     ),
                     SvgPicture.asset('assets/vector/cart.svg')

@@ -13,6 +13,7 @@ import 'package:learning_app/src/data/repositories/skill_repository.dart';
 
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:learning_app/src/features/instructor_page/page/instructor_page.dart';
+import 'package:learning_app/src/features/my_course_detail/page/my_course_detail_page.dart';
 import 'package:learning_app/src/features/payment/page/paymet_page.dart';
 import 'package:learning_app/src/features/review/page/review_page.dart';
 import 'package:learning_app/src/shared/models/course.dart';
@@ -30,25 +31,12 @@ class CourseDetail extends StatefulWidget {
   State<CourseDetail> createState() => _CourseDetailState();
 }
 class _CourseDetailState extends State<CourseDetail> {
-  late CourseDetailBloc _courseDetailBloc;
   @override
   void initState() {
     super.initState();
-    _courseDetailBloc = CourseDetailBloc(
-        skillRepository: context.read<SkillRepository>(),
-        instructorRepository: context.read<InstructorRepository>(),
-        moduleRepository: context.read<ModuleRepository>(),
-        courseRepository: context.read<CourseRepository>(),
-        ratingRepository: context.read<RatingRepository>()
-    );
-    _courseDetailBloc.add(FetchDataCourseDetail(widget.course.courseId,widget.course.category.categoryId));
+    context.read<CourseDetailBloc>().add(FetchDataCourseDetail(widget.course.courseId,widget.course.category.categoryId));
   }
-  @override
-  void dispose() {
-    _courseDetailBloc.close();
-    super.dispose();
-  }
-  handleNavigatorCourseDetail(Course course){
+  void handleNavigatorCourseDetail(Course course){
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (_){
       return CourseDetail(course: course);
     })
@@ -60,16 +48,61 @@ class _CourseDetailState extends State<CourseDetail> {
     })
     );
   }
+  void handleNavigatorMyCourseDetail(int courseId){
+    Navigator.push(context, MaterialPageRoute(builder: (_){
+      return MyCourseDetailPage(courseId: courseId);
+    })
+    );
+  }
   @override
   Widget build(BuildContext context) {
-    return BlocProvider.value(
-      value: _courseDetailBloc,
-      child: SafeArea(
-        child: Scaffold(
-          appBar: _appBar(context),
-          body: buildPortraitLayout(context),
-          bottomNavigationBar: _bottomNavigator(context),
-        ),
+    return SafeArea(
+      child:  BlocBuilder<CourseDetailBloc, CourseDetailState>(
+        builder: (context, state) {
+          if(state is CourseDetailLoading){
+            return const Scaffold(
+              body: Center(
+                child: CircularProgressIndicator(),
+              ),
+            ) ;
+          }
+          return Scaffold(
+            appBar: _appBar(context),
+            body: buildPortraitLayout(context),
+            bottomNavigationBar:  BlocBuilder<CourseDetailBloc, CourseDetailState>(
+              builder: (context, state) {
+                if(state is CourseDetailLoaded){
+                  if(state.isEnrollment){
+                    return SizedBox(
+                      height: 60,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          handleNavigatorMyCourseDetail(state.courseId);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                          textStyle: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.zero,
+                          ),
+                        ),
+                        child: const Text('GO TO COURSE',style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20
+                        ),),
+                      ),
+                    );
+
+                  }
+                }
+                return _bottomNavigator(context);
+              },
+            ),
+          );
+        },
       ),
     );
   }
@@ -118,7 +151,7 @@ class _CourseDetailState extends State<CourseDetail> {
       ],
     );
   }
-
+  
   Widget _bottomNavigator(BuildContext context){
 
     bool isLandscape = MediaQuery
@@ -509,10 +542,9 @@ class _CourseDetailState extends State<CourseDetail> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            IconButton(onPressed: () {
+            InkWell(onTap: (){
               Navigator.pop(context);
-            },
-            icon:  SvgPicture.asset('assets/vector/arrow_left.svg')),
+            },child: SvgPicture.asset('assets/vector/arrow_left.svg')),
             Row(
               children: [
                 SvgPicture.asset('assets/vector/cart.svg'),

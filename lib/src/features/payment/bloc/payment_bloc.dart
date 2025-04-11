@@ -19,7 +19,8 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
       final amount = event.course.price * (1 - event.course.discountPercentage / 100);
       final paymentUrl = await _vnPayService.createVnPayPayment(
           amount: amount,
-          orderDescription: 'Đăng ký khóa học '
+          orderDescription: 'Đăng ký ${event.course.courseName}',
+          courseId: event.course.courseId
       );
       print('tao payment url success');
       emit(PaymentLoaded(course: event.course,paymentUrl: paymentUrl));

@@ -23,6 +23,7 @@ import 'package:learning_app/src/data/services/quiz_service.dart';
 import 'package:learning_app/src/data/services/rating_service.dart';
 import 'package:learning_app/src/data/services/skill_service.dart';
 import 'package:learning_app/src/data/services/user_service.dart';
+import 'package:learning_app/src/features/course_detail/bloc/course_detail/course_detail_bloc.dart';
 import 'package:learning_app/src/features/my_course/bloc/my_course_bloc.dart';
 import 'package:learning_app/src/features/my_course_detail/bloc/my_course_detail_bloc.dart';
 import 'package:learning_app/src/features/payment/page/paymet_page.dart';
@@ -139,6 +140,13 @@ class _AppState extends State<App> {
             }),
             BlocProvider(create: (_){
               return MyCourseDetailBloc(courseRepository: _courseRepository, moduleRepository: _moduleRepository, quizRepository: _quizRepository);
+            }),
+            BlocProvider(create: (_){
+              return CourseDetailBloc(skillRepository: _skillRepository,
+                  instructorRepository: _instructorRepository,
+                  moduleRepository: _moduleRepository,
+                  courseRepository: _courseRepository,
+                  ratingRepository: _ratingRepository);
             })
           ],
           child: const AppView(),

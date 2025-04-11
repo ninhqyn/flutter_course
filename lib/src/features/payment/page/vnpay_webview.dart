@@ -1,5 +1,4 @@
-import 'dart:ffi';
-
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:learning_app/src/core/constants/api_constants.dart';
@@ -27,15 +26,10 @@ class _VnPayWebViewState extends State<VnPayWebView> {
     setState(() {
       _isLoading = false;
     });
-
     final urlString = url.toString();
     debugPrint("WebView stop loading URL: $urlString");
-
-    if (urlString.startsWith('https://${ApiConstants.baseUrl}/api/VnPay/payment-return') ||
-        urlString.startsWith('https://10.0.2.2:7287/api/VnPay/payment-return')) {
+    if (urlString.startsWith('https://${ApiConstants.baseUrl}/api/VnPay/payment-return')) {
       debugPrint('Callback URL from VNPay: $urlString');
-
-      // Trích xuất tham số truy vấn từ URL
       final uri = Uri.parse(urlString);
       final params = uri.queryParameters;
       final paymentDate = params['vnp_PayDate'] ?? '';
@@ -44,16 +38,26 @@ class _VnPayWebViewState extends State<VnPayWebView> {
       final responseCode = params['vnp_ResponseCode'] ?? '';
       final txnRef = params['vnp_TxnRef'] ?? '';
       final orderInfo = params['vnp_OrderInfo'] ?? '';
+      final decodedOrderInfo = Uri.decodeComponent(orderInfo);
+      Map<String, dynamic> orderInfoMap = {};
+        orderInfoMap = jsonDecode(decodedOrderInfo);
+        debugPrint("Decoded order info: $orderInfoMap");
+        final description = orderInfoMap['Description'] ?? '';
+        final courseId = orderInfoMap['CourseId'] ?? 0;
+        debugPrint("Description: $description");
+
       Navigator.of(context).pop();
       if (widget.onPaymentComplete != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           widget.onPaymentComplete!(
-              ModelResult(transactionId: txnRef,
+              ModelResult(
+                  transactionId: txnRef,
                   amount: amount/100,
-                  content: orderInfo,
+                  content: description,
                   isSuccess: responseCode == '00',
                   payDate: paymentDate,
-                  responseCode:responseCode
+                  responseCode:responseCode,
+                  courseId: courseId
               )
           );
         });

@@ -49,5 +49,9 @@ class CourseRepository{
         instructorId: instructorId);
     return results;
   }
+  Future<bool> checkEnrollment(int courseId) async{
+    final result = await courseService.checkEnrollment(courseId);
+    return result;
+  }
 
 }

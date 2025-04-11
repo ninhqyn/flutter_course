@@ -8,3 +8,8 @@ final class FetchDataCourseDetail extends CourseDetailEvent{
 
   FetchDataCourseDetail(this.courseId,this.categoryId);
 }
+final class UpdateEnrollment extends CourseDetailEvent{
+  final int courseId;
+
+  UpdateEnrollment({required this.courseId});
+}

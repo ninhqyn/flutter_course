@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:learning_app/src/data/model/quiz.dart';
 import 'package:learning_app/src/data/model/user_lesson.dart';
 import 'package:learning_app/src/data/repositories/course_repository.dart';
 import 'package:learning_app/src/data/repositories/lesson_repository.dart';
 import 'package:learning_app/src/data/repositories/module_repository.dart';
-import 'package:learning_app/src/data/repositories/quiz_repository.dart';
+
 import 'package:learning_app/src/features/my_course_detail/bloc/my_course_detail_bloc.dart';
 import 'package:learning_app/src/features/my_course_detail/widget/my_module_item.dart';
 import 'package:learning_app/src/features/play_list/bloc/play_list_bloc.dart';
@@ -43,9 +44,30 @@ class _MyCourseDetailPageState extends State<MyCourseDetailPage>
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Scaffold(
+      child: BlocBuilder<MyCourseDetailBloc, MyCourseDetailState>(
+  builder: (context, state) {
+    if(state is MyCourseDetailLoading){
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+    return Scaffold(
         appBar: AppBar(
+          centerTitle: true, // Căn giữa title
+          leading: IconButton(
+            icon: SvgPicture.asset(
+              'assets/vector/arrow_left.svg',
+              width: 24,
+              height: 24,
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
           title: const Text('My Course Detail'),
+
           bottom: TabBar(
             controller: _tabController,
             tabs: [
@@ -90,35 +112,27 @@ class _MyCourseDetailPageState extends State<MyCourseDetailPage>
             ),
           ],
         ),
-      ),
+      );
+  },
+),
     );
   }
 
   Widget _buildCourseContentTab() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Nội dung khóa học',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          BlocBuilder<MyCourseDetailBloc, MyCourseDetailState>(
-            builder: (context, state) {
-              if(state is MyCourseDetailLoaded){
-                return Text(state.course.description);
-              }
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
-            },
-          ),
-          const SizedBox(height: 16),
-          BlocBuilder<MyCourseDetailBloc, MyCourseDetailState>(
-            builder: (context, state) {
-              if(state is MyCourseDetailLoaded){
-                return ListView.separated(
+      child: BlocBuilder<MyCourseDetailBloc, MyCourseDetailState>(
+        builder: (context, state) {
+          if(state is MyCourseDetailLoaded){
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Nội dung khóa học',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                Text(state.course.description),
+                ListView.separated(
                     shrinkWrap: true,
                     itemCount:state.modules.length,
                     itemBuilder: (context, index) {
@@ -132,16 +146,15 @@ class _MyCourseDetailPageState extends State<MyCourseDetailPage>
                       },);
                     }, separatorBuilder: (BuildContext context, int index) {
                       return const SizedBox(height: 5,);
-                },);
-              }
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
+                },),
+              ],
+            );
+          }
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
 
-            },
-          )
-          // Thêm các module khác tương tự
-        ],
+        },
       ),
     );
   }

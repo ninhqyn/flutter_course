@@ -29,18 +29,29 @@ class CourseDetailBloc extends Bloc<CourseDetailEvent, CourseDetailState> {
     required this.ratingRepository
   }) : super(CourseDetailInitial()) {
     on<FetchDataCourseDetail>(_onFetchDataCourseDetail);
+    on<UpdateEnrollment>(_onUpdateEnrollment);
   }
-
+  Future<void> _onUpdateEnrollment(UpdateEnrollment event,Emitter<CourseDetailState> emit )async{
+    final isEnrollment  =await courseRepository.checkEnrollment(event.courseId);
+    if(state is CourseDetailLoaded){
+      final currentState = state as CourseDetailLoaded;
+      emit(currentState.copyWith(isEnrollment: isEnrollment));
+    }
+  }
   Future<void> _onFetchDataCourseDetail(FetchDataCourseDetail event, Emitter<CourseDetailState> emit) async {
     try {
+      emit(CourseDetailLoading());
       final rating = await ratingRepository.getRatingTotalCourseId(event.courseId);
+      final isEnrollment = await courseRepository.checkEnrollment(event.courseId);
       emit(CourseDetailLoaded(
           courseId:event.courseId,
           skills: const<Skill>[],
           instructors: const<Instructor>[],
           modules: const<Module>[],
           courses: const<Course>[],
-          rating: rating)
+          rating: rating,
+        isEnrollment: isEnrollment
+      )
       );
       final result = await Future.wait([
         skillRepository.getAllSkillByCourseId(event.courseId),

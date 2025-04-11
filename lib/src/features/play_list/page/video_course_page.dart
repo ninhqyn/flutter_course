@@ -29,8 +29,6 @@ class _VideoCoursePageState extends State<VideoCoursePage> {
   late VideoPlayerController _videoPlayerController;
   ChewieController? _chewieController;
   bool _isInitialized = false;
-  bool _hasVideoFinished = false;
-  // Store the current lesson and all lessons from the module
   Lesson? _currentLesson;
   List<Lesson> _lessons = [];
   Module? _currentModule;
@@ -64,12 +62,13 @@ class _VideoCoursePageState extends State<VideoCoursePage> {
     ]);
 
     if (_isInitialized) {
-      _videoPlayerController.removeListener(_onVideoPositionChanged);
+      _videoPlayerController.removeListener(_onVideoFinished);
       _videoPlayerController.dispose();
       _chewieController?.dispose();
     }
     super.dispose();
   }
+
 
   Future<void> _initializePlayer(Lesson lesson) async {
     _videoPlayerController = VideoPlayerController.network(
@@ -83,8 +82,13 @@ class _VideoCoursePageState extends State<VideoCoursePage> {
       autoPlay: true,
       looping: false,
       aspectRatio: _videoPlayerController.value.aspectRatio,
-      allowFullScreen: true,
+      allowFullScreen: true, // Cho phép fullscreen
       allowMuting: true,
+      deviceOrientationsAfterFullScreen: [DeviceOrientation.portraitUp], // Quay về portrait khi thoát fullscreen
+      deviceOrientationsOnEnterFullScreen: [
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ], // Chỉ cho phép landscape khi vào fullscreen
       placeholder: Container(
         color: Colors.black,
         child: const Center(
@@ -97,15 +101,24 @@ class _VideoCoursePageState extends State<VideoCoursePage> {
         backgroundColor: Colors.grey.shade300,
         bufferedColor: Colors.blue.withOpacity(0.5),
       ),
+      fullScreenByDefault: false,
+      errorBuilder: (context, errorMessage) {
+        return Center(
+          child: Text(
+            errorMessage,
+            style: const TextStyle(color: Colors.white),
+          ),
+        );
+      },
     );
-    _videoPlayerController.addListener(_onVideoPositionChanged);
+
+    _videoPlayerController.addListener(_onVideoFinished);
+
     setState(() {
       _currentLesson = lesson;
       _isInitialized = true;
     });
   }
-
-
 
 
   void _onModuleSelected(int moduleId) {
@@ -128,11 +141,14 @@ class _VideoCoursePageState extends State<VideoCoursePage> {
       );
     }
   }
-  void _onVideoPositionChanged() {
-    if (!_hasVideoFinished &&
-        _videoPlayerController.value.position >= _videoPlayerController.value.duration) {
-      // Đặt flag để đánh dấu đã xử lý event này
-      _hasVideoFinished = true;
+  bool _hasVideoFinished = false; // Thêm biến để track trạng thái
+
+  void _onVideoFinished() {
+    if (!_hasVideoFinished && // Kiểm tra xem video đã kết thúc chưa
+        _videoPlayerController.value.position >= _videoPlayerController.value.duration &&
+        _videoPlayerController.value.duration.inSeconds > 0) {
+
+      _hasVideoFinished = true; // Đánh dấu video đã kết thúc
 
       if (mounted && _currentModule != null && _currentLesson != null) {
         context.read<PlayListBloc>().add(
@@ -147,24 +163,21 @@ class _VideoCoursePageState extends State<VideoCoursePage> {
     }
   }
 
+
   void _changeVideo(Lesson lesson) {
     if (_isInitialized) {
-      _videoPlayerController.pause();
+      _videoPlayerController.removeListener(_onVideoFinished);
       _videoPlayerController.dispose();
       _chewieController?.dispose();
     }
 
     setState(() {
       _isInitialized = false;
-      // Reset flag khi chuyển video mới
-      _hasVideoFinished = false;
+      _hasVideoFinished = false; // Reset trạng thái khi đổi video
     });
 
     _initializePlayer(lesson);
   }
-
-
-
 
 
   @override
@@ -211,182 +224,194 @@ class _VideoCoursePageState extends State<VideoCoursePage> {
   }
 
   Widget _buildContent() {
-    return OrientationBuilder(
-        builder: (context, orientation) {
-          final isPortrait = orientation == Orientation.portrait;
+    return SafeArea(
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(_currentModule?.moduleName ?? 'Video Course'),
+        ),
+        body: OrientationBuilder(
+          builder: (context, orientation) {
+            // Kiểm tra xem đang ở chế độ ngang hay dọc
+            bool isLandscape = orientation == Orientation.landscape;
 
-          if (!isPortrait) {
-            // Landscape mode - Full screen video
-            return SafeArea(
-              child: Scaffold(
-                body: _isInitialized
+            // Nếu ở chế độ ngang (landscape/fullscreen), chỉ hiển thị video player
+            if (isLandscape) {
+              return Container(
+                color: Colors.black,
+                child: _isInitialized
                     ? Chewie(controller: _chewieController!)
                     : const Center(child: CircularProgressIndicator()),
-              ),
-            );
-          }
-          return SafeArea(
-            child: Scaffold(
-              appBar: AppBar(
-                title: Text(_currentModule?.moduleName ?? 'Video Course'),
-              ),
-              body: Column(
-                children: [
-                  // Video player section
-                  Container(
-                    height: 220,
-                    color: Colors.black,
-                    child: _isInitialized
-                        ? Chewie(controller: _chewieController!)
-                        : const Center(child: CircularProgressIndicator()),
-                  ),
-            
-                  // Video information section
-                  if (_currentLesson != null)
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                           'Lesson ${_currentLesson!.orderIndex} : ${_currentLesson!.lessonName}',
-                            textAlign: TextAlign.start,
-                            style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            _currentLesson!.content,
-                            textAlign: TextAlign.start,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[700],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-            
-                  // Divider
-                  Divider(color: Colors.grey[300], height: 1),
-            
-                  // Module selection
-                  if (_allModules.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: DropdownButton<int>(
-                        isExpanded: true,
-                        value: _currentModule?.moduleId,
-                        hint: const Text('Select Module'),
-                        onChanged: (moduleId) {
-                          if (moduleId != null && _currentModule?.moduleId != moduleId) {
-                            _onModuleSelected(moduleId);
-                          }
-                        },
-                        items: _allModules.map((module) {
-                          return DropdownMenuItem<int>(
-                            value: module.moduleId,
-                            child: Text('  Module ${module.orderIndex}: ${module.moduleName}',style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18
-                            ),),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-            
-                  // Video list section
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: _lessons.length,
-                      itemBuilder: (context, index) {
-                        final lesson = _lessons[index];
-                        final isCurrentVideo = _currentLesson?.lessonId == lesson.lessonId;
-                        return Container(
-                          decoration: BoxDecoration(
-                            border: Border(
-                              left: BorderSide(
-                                color: isCurrentVideo ? Colors.blue : Colors.transparent,
-                                width: 4,
-                              ),
-                            ),
-                            color: isCurrentVideo ? Colors.blue.withOpacity(0.05) : null,
-                          ),
-                          child: ListTile(
-                            leading: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(4),
-                                  child:Image.network(
-                                    'https://res.cloudinary.com/depram2im/image/upload/v1743389798/ai_clsgh6.jpg',
-                                    width: 100,
-                                    height: 100,
-                                    fit: BoxFit.fill,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Container(
-                                        width: 80,
-                                        height: 50,
-                                        color: Colors.grey[300],
-                                        child: Icon(Icons.video_library, color: Colors.grey[600]),
-                                      );
-                                    },
-                                  )
-            
-                                ),
-                                Container(
-                                  width: 80,
-                                  height: 45,
-                                  color: Colors.black.withOpacity(0.2),
-                                  child: Icon(
-                                    isCurrentVideo ? Icons.pause : Icons.play_arrow,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            title: Text(
-                              'Lesson ${lesson.orderIndex}: ${lesson.lessonName}',
-                              style: TextStyle(
-                                fontWeight:FontWeight.bold,
-                                color: isCurrentVideo ?Colors.blue :Colors.black
-                              ),
-                            ),
-                            subtitle: Text(
-                              lesson.content,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
+              );
+            }
+
+            // Ở chế độ dọc (portrait), hiển thị đầy đủ giao diện
+            return Column(
+              children: [
+                // Video player section
+                Container(
+                  height: 220,
+                  color: Colors.black,
+                  child: _isInitialized
+                      ? Chewie(controller: _chewieController!)
+                      : const Center(child: CircularProgressIndicator()),
+                ),
+
+                // Phần còn lại của giao diện
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Video information section
+                        if (_currentLesson != null)
+                          Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 Text(
-                                  '${(lesson.durationMinutes! / 60).floor()}:${(lesson.durationMinutes! % 60).toString().padLeft(2, '0')}',
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
-                                    fontSize: 12,
+                                  'Lesson ${_currentLesson!.orderIndex} : ${_currentLesson!.lessonName}',
+                                  textAlign: TextAlign.start,
+                                  style: const TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                                
+                                const SizedBox(height: 8),
+                                Text(
+                                  _currentLesson!.content,
+                                  textAlign: TextAlign.start,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey[700],
+                                  ),
+                                ),
                               ],
                             ),
-                            onTap: () {
-                              if (!isCurrentVideo) {
-                                _onLessonSelected(lesson);
-                              }
-                            },
                           ),
-                        );
-                      },
+
+                        // Divider
+                        Divider(color: Colors.grey[300], height: 1),
+
+                        // Module selection
+                        if (_allModules.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: DropdownButton<int>(
+                              isExpanded: true,
+                              value: _currentModule?.moduleId,
+                              hint: const Text('Select Module'),
+                              onChanged: (moduleId) {
+                                if (moduleId != null && _currentModule?.moduleId != moduleId) {
+                                  _onModuleSelected(moduleId);
+                                }
+                              },
+                              items: _allModules.map((module) {
+                                return DropdownMenuItem<int>(
+                                  value: module.moduleId,
+                                  child: Text('  Module ${module.orderIndex}: ${module.moduleName}',style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18
+                                  ),),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+
+                        // Video list section
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          itemCount: _lessons.length,
+                          itemBuilder: (context, index) {
+                            final lesson = _lessons[index];
+                            final isCurrentVideo = _currentLesson?.lessonId == lesson.lessonId;
+                            return Container(
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  left: BorderSide(
+                                    color: isCurrentVideo ? Colors.blue : Colors.transparent,
+                                    width: 4,
+                                  ),
+                                ),
+                                color: isCurrentVideo ? Colors.blue.withOpacity(0.05) : null,
+                              ),
+                              child: ListTile(
+                                // Phần ListTile giữ nguyên
+                                leading: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    ClipRRect(
+                                        borderRadius: BorderRadius.circular(4),
+                                        child:Image.network(
+                                          'https://res.cloudinary.com/depram2im/image/upload/v1743389798/ai_clsgh6.jpg',
+                                          width: 100,
+                                          height: 100,
+                                          fit: BoxFit.fill,
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return Container(
+                                              width: 80,
+                                              height: 50,
+                                              color: Colors.grey[300],
+                                              child: Icon(Icons.video_library, color: Colors.grey[600]),
+                                            );
+                                          },
+                                        )
+                                    ),
+                                    Container(
+                                      width: 80,
+                                      height: 45,
+                                      color: Colors.black.withOpacity(0.2),
+                                      child: Icon(
+                                        isCurrentVideo ? Icons.pause : Icons.play_arrow,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                title: Text(
+                                  'Lesson ${lesson.orderIndex}: ${lesson.lessonName}',
+                                  style: TextStyle(
+                                      fontWeight:FontWeight.bold,
+                                      color: isCurrentVideo ?Colors.blue :Colors.black
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  lesson.content,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      '${(lesson.durationMinutes! / 60).floor()}:${(lesson.durationMinutes! % 60).toString().padLeft(2, '0')}',
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                onTap: () {
+                                  if (!isCurrentVideo) {
+                                    _onLessonSelected(lesson);
+                                  }
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            ),
-          );
-        }
+                ),
+              ],
+            );
+          },
+        ),
+      ),
     );
   }
+
 }

@@ -1,153 +1,230 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:learning_app/src/data/repositories/auth_repository.dart';
+import 'package:learning_app/src/features/auth/bloc/sign_up/sign_up_bloc.dart';
+import 'package:learning_app/src/features/auth/pages/resend_page.dart';
 import 'package:learning_app/src/features/auth/pages/sign_in_page.dart';
+import 'package:learning_app/src/features/auth/pages/verifycode_screen.dart';
 
 
-class SignUpPage extends StatefulWidget {
+class SignUpPage extends StatelessWidget {
   const SignUpPage({super.key, required this.isLogin});
   final bool isLogin;
-  @override
-  State<SignUpPage> createState() => _SignUpPageState();
-}
-
-class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
-  bool _isPasswordVisible = false;
-  late String page;
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-
-  }
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-  }
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this); // Clean up observer
-    super.dispose();
-  }
-
-  @override
-  void didChangeMetrics() {
-    setState(() {});
-  }
-
-
-  void handleNavigator(){
-    if(!widget.isLogin){
+  void handleNavigator(BuildContext context){
+    if(!isLogin){
       Navigator.pop(context);
     }else{
       Navigator.push(context, MaterialPageRoute(builder: (_){
         return const SignInPage(isSignUp: true);
       }));
     }
-
   }
+  
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        resizeToAvoidBottomInset: true, // Ensures the UI resizes when the keyboard appears
-        appBar: _appBar(context),
-        body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16,vertical: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Sign up',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 28,
-                ),
-              ),
-              const SizedBox(height: 16.0), // Add spacing
-              const TextField(
-                decoration: InputDecoration(
-                  hintText: 'Placeholder',
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide(width: 2.0),
+    final nameController = TextEditingController();
+    final emailController = TextEditingController();
+    final passwordController = TextEditingController();
+    final confirmController = TextEditingController();
+    return BlocProvider(
+      create: (context) => SignUpBloc(context.read<AuthRepository>()),
+      child: SafeArea(
+      child: Builder(
+        builder: (context) {
+          return BlocConsumer<SignUpBloc, SignUpState>(
+            listener: (context, state) {
+              if(state.signUpStatus == SignUpStatus.failure){
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.errorMessage),
+                    backgroundColor: Colors.red,
                   ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.blue,
-                      width: 2.0,
+                );
+              }
+              if(state.signUpStatus == SignUpStatus.success){
+                Navigator.push(context, MaterialPageRoute(builder: (_){
+                  return VerifyCodeScreen(email: state.email,);
+                }));
+              }
+            },
+            builder: (context, state) {
+              if(state.signUpStatus == SignUpStatus.loading){
+                return const Scaffold(
+                  body: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }
+              return Scaffold(
+                resizeToAvoidBottomInset: true, // Ensures the UI resizes when the keyboard appears
+                appBar: _appBar(context),
+                body: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16,vertical: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Sign up',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 28,
+                          ),
+                        ),
+                        const SizedBox(height: 16.0), // Add spacing
+                        TextField(
+                          controller: nameController,
+                          onChanged: (value){
+                            context.read<SignUpBloc>().add(UserNameChanged(userName: value));
+                          },
+                          decoration:  InputDecoration(
+                            hintText: 'User name',
+                            errorText: state.nameError.isEmpty ? null : state.nameError,
+                            border: const OutlineInputBorder(
+                              borderSide: BorderSide(width: 2.0),
+                            ),
+                            focusedBorder: const OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Colors.blue,
+                                width: 2.0,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16.0),
+                        TextField(
+                          controller: emailController,
+                          onChanged: (value){
+                            context.read<SignUpBloc>().add(EmailSignUpChanged(email: value));
+                          },
+                          decoration: InputDecoration(
+                            hintText: 'Email',
+                            errorText: state.emailError.isEmpty ? null : state.emailError,
+                            border: const OutlineInputBorder(
+                              borderSide: BorderSide(width: 2.0),
+                            ),
+                            focusedBorder: const OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Colors.blue,
+                                width: 2.0,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16.0), // Add spacing
+                        TextField(
+                          controller: passwordController,
+                          onChanged: (value){
+                            context.read<SignUpBloc>().add(PasswordSignUpChanged(password: value));
+                          },
+                          obscureText: !state.isShowPassword,
+                          decoration: InputDecoration(
+                            hintText: 'Password',
+                            errorText: state.passwordError.isEmpty ? null : state.passwordError,
+                            border: const OutlineInputBorder(
+                              borderSide: BorderSide(width: 2.0),
+                            ),
+                            focusedBorder: const OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Colors.lightBlue, // Match the image's border color
+                                width: 2.0,
+                              ),
+                            ),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                state.isShowPassword
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                                color: Colors.grey,
+                              ),
+                              onPressed: () {
+                                context.read<SignUpBloc>().add(PasswordVisible());
+                              },
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 15),
+                        TextField(
+                          controller: confirmController,
+                          onChanged: (value){
+                            context.read<SignUpBloc>().add(ConfirmPasswordChanged(confirmPassword: value));
+                          },
+                          obscureText: !state.isShowConfirmPassword,
+                          decoration: InputDecoration(
+                            hintText: 'Confirm password',
+                            errorText: state.confirmPasswordError.isEmpty ? null : state.confirmPasswordError,
+                            border: const OutlineInputBorder(
+                              borderSide: BorderSide(width: 2.0),
+                            ),
+                            focusedBorder: const OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Colors.lightBlue, // Match the image's border color
+                                width: 2.0,
+                              ),
+                            ),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                state.isShowConfirmPassword
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                                color: Colors.grey,
+                              ),
+                              onPressed: () {
+                                context.read<SignUpBloc>().add(ConfirmPasswordVisible());
+                              },
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 15),// Add spacing
+                        TextButton(
+                          onPressed: () {},
+                          child: const Text(
+                            'Forgot password?',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 100,),
+                        Center(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              context.read<SignUpBloc>().add(SignUpSubmit());
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blueAccent, // Match the "Log in" button color
+                              minimumSize: const Size(double.infinity, 50),
+                              side: BorderSide(
+                                width: 1,
+                                color: Colors.black.withOpacity(0.2),
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: const Text(
+                              'Sign up', // Changed to "Log in" to match the second image
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 17
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16.0), // Add spacing
-              TextField(
-                obscureText: !_isPasswordVisible,
-                decoration: InputDecoration(
-                  hintText: 'Type password',
-                  border: const OutlineInputBorder(
-                    borderSide: BorderSide(width: 2.0),
-                  ),
-                  focusedBorder: const OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.purple, // Match the image's border color
-                      width: 2.0,
-                    ),
-                  ),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _isPasswordVisible
-                          ? Icons.visibility
-                          : Icons.visibility_off,
-                      color: Colors.grey,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _isPasswordVisible = !_isPasswordVisible;
-                      });
-                    },
-                  ),
-                ),
-              ),
-              const SizedBox(height: 15), // Add spacing
-              TextButton(
-                onPressed: () {},
-                child: const Text(
-                  'Forgot password?',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 100,),
-              Center(
-                child: ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blueAccent, // Match the "Log in" button color
-                    minimumSize: const Size(double.infinity, 50),
-                    side: BorderSide(
-                      width: 1,
-                      color: Colors.black.withOpacity(0.2),
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'Sign up', // Changed to "Log in" to match the second image
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 17
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+              );
+            },
+          );
+        }
       ),
-    );
+    ),
+);
   }
 
   PreferredSize _appBar(BuildContext context) {
@@ -166,7 +243,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
             ),
             TextButton(
               onPressed: () {
-                handleNavigator();
+                handleNavigator(context);
               },
               child: const Text(
                 'I have an account',

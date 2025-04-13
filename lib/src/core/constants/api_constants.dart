@@ -3,7 +3,6 @@ class ApiConstants{
 
   //Course
   static const String courses ='/api/Course';
-
   static const String courseByCategory ='/api/Course/category';
   static const String courseNew ='/api/Course/new';
   static const String courseFavorite ='/api/Course/favorites';
@@ -32,6 +31,10 @@ class ApiConstants{
   static const String authLogin = '/api/Auth/login';
   static const String authVerifyToken ='/api/Auth/verify-token';
   static const String authRefreshToken ='api/Auth/refresh-token';
+  static const String register ='api/Auth/register';
+  static const String verifyCode ='api/Auth/verify-code';
+  static const String resendVerification='api/Auth/resend-verification';
+  static const String forgotPassword ='api/Auth/forgot-password';
 
 
   //User

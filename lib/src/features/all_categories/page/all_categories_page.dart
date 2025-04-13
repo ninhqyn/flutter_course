@@ -19,19 +19,23 @@ class AllCategoriesPage extends StatelessWidget {
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
-        body: MasonryGridView.count(
-          shrinkWrap: true,
-          crossAxisCount: 2,
+        body: GridView.count(
+
+          shrinkWrap: true, // chiếm không gian vừa đủ
+          crossAxisCount: 2, // 2 cột
           mainAxisSpacing: 10,
           crossAxisSpacing: 10,
-          itemCount: categories.length, 
-          itemBuilder: (context, index) {
-            return InkWell(onTap: (){
-              Navigator.push(context, MaterialPageRoute(builder: (_){
-                return AllCourseByCategory(category: categories[index]);
-              }));
-            },child: CategoryCard(category: categories[index]));
-          },
+          childAspectRatio:  2/ 2.5, // điều chỉnh tỉ lệ ngang / dọc
+          children: List.generate(categories.length, (index) {
+            return InkWell(
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) {
+                  return AllCourseByCategory(category: categories[index]);
+                }));
+              },
+              child: CategoryCard(category: categories[index]),
+            );
+          }),
         ),
       ),
     );

@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:learning_app/src/data/model/api_response.dart';
+
 import '../model/auth_response.dart';
 import '../services/auth_api_client.dart';
 import '../data_scources/auth_local_data_source.dart';
@@ -141,5 +143,27 @@ class AuthRepository {
   Future<void> checkAndUpdateAuthStatus() async {
     final status = await checkAuthStatus();
     _updateAuthStatus(status);
+  }
+
+  Future<ApiResponse> signUpWithEmail(String userName,String email,String password,String confirmPassword) async{
+    return await _authService.signUpWithEmail(userName, email, password, confirmPassword);
+  }
+
+  Future<ApiResponse> verifyCode({
+    required String email,
+    required String code,
+  }) async {
+    // TODO: Implement actual API call
+    // Simulating API delay
+   return _authService.verifyCode(email, code);
+  }
+
+  Future<ApiResponse> resendVerificationCode({
+    required String email,
+  }) async {
+    // TODO: Implement actual API call
+    // Simulating API delay
+    await Future.delayed(const Duration(seconds: 2));
+    return ApiResponse(isSuccess: true, message: 'Đã gửi lại mã xác thực', statusCode: '');
   }
 }

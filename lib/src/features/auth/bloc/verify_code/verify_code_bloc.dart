@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:learning_app/src/data/repositories/auth_repository.dart';
@@ -9,7 +11,7 @@ part 'verify_code_state.dart';
 class VerifyCodeBloc extends Bloc<VerifyCodeEvent, VerifyCodeState> {
   final AuthRepository authRepository;
   final String email;
-
+  Timer? _resendTimer;
   VerifyCodeBloc({
     required this.authRepository,
     required this.email,
@@ -17,8 +19,37 @@ class VerifyCodeBloc extends Bloc<VerifyCodeEvent, VerifyCodeState> {
     on<VerifyCodeChanged>(_onVerifyCodeChanged);
     on<VerifyCodeSubmitted>(_onVerifyCodeSubmitted);
     on<ResendCodeRequested>(_onResendCodeRequested);
+    on<CountdownTicked>(_onCountdownTicked);
+
+    _startResendTimer();
+  }
+  @override
+  Future<void> close() {
+    _resendTimer?.cancel();
+    return super.close();
+  }
+  void _startResendTimer() {
+    const totalSeconds = 5 * 60; // 5 minutes in seconds
+    emit(state.copyWith(resendCountdown: totalSeconds));
+
+    _resendTimer?.cancel();
+    _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      final newCountdown = state.resendCountdown! - 1;
+      if (newCountdown <= 0) {
+        timer.cancel();
+        add(const CountdownTicked(0));
+      } else {
+        add(CountdownTicked(newCountdown));
+      }
+    });
   }
 
+  void _onCountdownTicked(
+      CountdownTicked event,
+      Emitter<VerifyCodeState> emit,
+      ) {
+    emit(state.copyWith(resendCountdown: event.remainingSeconds));
+  }
   void _onVerifyCodeChanged(
       VerifyCodeChanged event,
       Emitter<VerifyCodeState> emit,
@@ -77,6 +108,8 @@ class VerifyCodeBloc extends Bloc<VerifyCodeEvent, VerifyCodeState> {
 
       if (response.isSuccess) {
         emit(state.copyWith(status: VerifyCodeStatus.resendSuccess));
+        // Restart the timer after successful resend
+        _startResendTimer();
       } else {
         emit(state.copyWith(
           status: VerifyCodeStatus.resendFailure,

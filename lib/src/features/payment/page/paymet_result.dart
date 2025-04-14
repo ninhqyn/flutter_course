@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:learning_app/app.dart';
 import 'package:learning_app/src/data/model/result_model.dart';
 import 'package:learning_app/src/features/course_detail/bloc/course_detail/course_detail_bloc.dart';
 import 'package:learning_app/src/features/my_course/bloc/my_course_bloc.dart';
-import 'package:learning_app/src/features/my_course_detail/bloc/my_course_detail_bloc.dart';
 import 'package:learning_app/src/shared/utils/date_time_util.dart';
 
 class PaymentResult extends StatefulWidget {

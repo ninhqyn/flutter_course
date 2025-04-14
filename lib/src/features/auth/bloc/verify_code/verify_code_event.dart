@@ -21,3 +21,11 @@ class VerifyCodeChanged extends VerifyCodeEvent {
 class VerifyCodeSubmitted extends VerifyCodeEvent {}
 
 class ResendCodeRequested extends VerifyCodeEvent {}
+class CountdownTicked extends VerifyCodeEvent {
+  final int remainingSeconds;
+
+  const CountdownTicked(this.remainingSeconds);
+
+  @override
+  List<Object> get props => [remainingSeconds];
+}

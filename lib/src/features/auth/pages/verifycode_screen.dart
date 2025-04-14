@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:learning_app/src/data/repositories/auth_repository.dart';
 import 'package:learning_app/src/features/auth/bloc/verify_code/verify_code_bloc.dart';
 import 'package:learning_app/src/features/auth/pages/login_page.dart';
+import 'package:learning_app/src/features/auth/pages/register_result_page.dart';
 
 class VerifyCodeScreen extends StatelessWidget {
   final String email;
 
   const VerifyCodeScreen({
-    Key? key,
+    super.key,
     required this.email,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -66,13 +66,10 @@ class _VerifyCodeViewState extends State<VerifyCodeView> {
           previous.errorMessage != current.errorMessage,
       listener: (context, state) {
         if (state.status == VerifyCodeStatus.success) {
-          // TODO: Navigate to the next screen
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Xác thực thành công')),
-          );
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_){
-            return const LoginPage();
-          }));
+          Navigator.pushAndRemoveUntil(
+              context, MaterialPageRoute(builder: (_){
+                return const RegisterResult();
+          }), (route)=> route.isFirst,);
         } else if (state.status == VerifyCodeStatus.failure && state.errorMessage != null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.errorMessage!)),
@@ -150,8 +147,31 @@ class _VerifyCodeViewState extends State<VerifyCodeView> {
                   ),
                   const SizedBox(height: 20),
                   BlocBuilder<VerifyCodeBloc, VerifyCodeState>(
-                    buildWhen: (previous, current) => previous.status != current.status,
+                    buildWhen: (previous, current) =>
+                    previous.status != current.status ||
+                        previous.resendCountdown != current.resendCountdown,
                     builder: (context, state) {
+                      // Format the countdown time: mm:ss
+                      String formatCountdown(int seconds) {
+                        final minutes = seconds ~/ 60;
+                        final remainingSeconds = seconds % 60;
+                        return '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
+                      }
+
+                      if (state.resendCountdown != null && state.resendCountdown! > 0) {
+                        // Show countdown
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: Text(
+                            'Gửi lại mã sau ${formatCountdown(state.resendCountdown!)}',
+                            style: TextStyle(
+                              color: Theme.of(context).disabledColor,
+                            ),
+                          ),
+                        );
+                      }
+
+                      // Show resend button
                       return TextButton(
                         onPressed: state.status == VerifyCodeStatus.resending
                             ? null
@@ -160,9 +180,9 @@ class _VerifyCodeViewState extends State<VerifyCodeView> {
                         },
                         child: state.status == VerifyCodeStatus.resending
                             ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2)
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
                         )
                             : const Text('Gửi lại mã'),
                       );

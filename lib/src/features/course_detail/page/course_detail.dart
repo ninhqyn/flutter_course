@@ -19,6 +19,7 @@ import 'package:learning_app/src/features/review/page/review_page.dart';
 import 'package:learning_app/src/shared/models/course.dart';
 import 'package:learning_app/src/shared/models/instructor.dart';
 import 'package:learning_app/src/shared/models/skill.dart';
+import 'package:learning_app/src/shared/utils/price_format.dart';
 import 'package:learning_app/src/shared/widgets/course_item.dart';
 import 'package:learning_app/src/shared/widgets/expandable_module.dart';
 
@@ -114,9 +115,57 @@ class _CourseDetailState extends State<CourseDetail> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('${widget.course.price} vnđ'),
-            Text('${widget.course.discountPercentage}% '
-                '${widget.course.price - widget.course.price/ widget.course.discountPercentage} vnđ')
+            // Giá gốc (có gạch ngang nếu có giảm giá)
+            widget.course.discountPercentage > 0
+                ? Text(
+              'Giá gốc: ${widget.course.price.toCurrencyVND()}',
+              style: const TextStyle(
+                decoration: TextDecoration.lineThrough,
+                color: Colors.grey,
+                fontSize: 14,
+              ),
+            )
+                : Text(
+              'Giá: ${widget.course.price.toCurrencyVND()}',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+
+            // Hiển thị phần giảm giá nếu có
+            if (widget.course.discountPercentage > 0) ...[
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  // Giá sau giảm
+                  Text(
+                    'Giá: ${(widget.course.price * (1 - widget.course.discountPercentage / 100)).toCurrencyVND()}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade100,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      '-${widget.course.discountPercentage}%',
+                      style: const TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
         Row(
@@ -141,7 +190,7 @@ class _CourseDetailState extends State<CourseDetail> {
                     borderRadius: BorderRadius.circular(5)
                 ),
                 backgroundColor: Colors.blue
-            ),child: const Text('Buy now',style: TextStyle(
+            ),child: const Text('Enroll now',style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 20,
                 color: Colors.white

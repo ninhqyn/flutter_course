@@ -332,5 +332,79 @@ class AuthService {
           statusCode: "unknown"
       );
     }
+
+
+  }
+  Future<ApiResponse> resendVerifyCode(String email) async {
+    try {
+      final response = await _dio.post(
+        Uri.https(ApiConstants.baseUrl, ApiConstants.resendVerification).toString(),
+        data: {
+          "email": email,
+        },
+      );
+
+      debugPrint("Verify code resend status code: ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+        return ApiResponse(
+            isSuccess: true,
+            message: "Mã xác thực đã được gửi lại!",
+            statusCode: response.statusCode.toString()
+        );
+      }
+
+      // Trường hợp response không phải 200 nhưng không ném ngoại lệ
+      return ApiResponse(
+          isSuccess: false,
+          message: response.data?["message"] ?? "Error !",
+          statusCode: response.statusCode.toString()
+      );
+    } catch (e) {
+      debugPrint("Verify code error: $e");
+      if (e is DioException) {
+        // Truy cập response data nếu có
+        if (e.response != null) {
+          final statusCode = e.response?.statusCode;
+          final responseData = e.response?.data;
+
+          debugPrint("Error status code: $statusCode");
+          debugPrint("Error response data: $responseData");
+
+          // Xử lý mã lỗi 400
+          if (statusCode == 400) {
+            final message = responseData?["message"] ?? "Mã xác thực không chính xác!";
+            return ApiResponse(
+                isSuccess: false,
+                message: message,
+                statusCode: statusCode.toString()
+            );
+          }
+        }
+
+        // Lỗi kết nối hoặc lỗi khác liên quan đến Dio
+        String errorMessage = "Lỗi kết nối đến máy chủ";
+        if (e.type == DioExceptionType.connectionTimeout) {
+          errorMessage = "Kết nối đến máy chủ bị quá thời gian";
+        } else if (e.type == DioExceptionType.receiveTimeout) {
+          errorMessage = "Nhận dữ liệu từ máy chủ bị quá thời gian";
+        }
+
+        return ApiResponse(
+            isSuccess: false,
+            message: errorMessage,
+            statusCode: e.response?.statusCode?.toString() ?? "unknown"
+        );
+      }
+
+      // Lỗi khác không phải DioException
+      return ApiResponse(
+          isSuccess: false,
+          message: "Đã có lỗi xảy ra, vui lòng thử lại sau",
+          statusCode: "unknown"
+      );
+    }
+
+
   }
 }

@@ -153,17 +153,11 @@ class AuthRepository {
     required String email,
     required String code,
   }) async {
-    // TODO: Implement actual API call
-    // Simulating API delay
-   return _authService.verifyCode(email, code);
+   return await _authService.verifyCode(email, code);
   }
-
   Future<ApiResponse> resendVerificationCode({
     required String email,
   }) async {
-    // TODO: Implement actual API call
-    // Simulating API delay
-    await Future.delayed(const Duration(seconds: 2));
-    return ApiResponse(isSuccess: true, message: 'Đã gửi lại mã xác thực', statusCode: '');
+    return await _authService.resendVerifyCode(email);
   }
 }

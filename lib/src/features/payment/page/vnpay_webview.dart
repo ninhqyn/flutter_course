@@ -53,7 +53,7 @@ class _VnPayWebViewState extends State<VnPayWebView> {
               ModelResult(
                   transactionId: txnRef,
                   amount: amount/100,
-                  content: description,
+                  content: courseId,
                   isSuccess: responseCode == '00',
                   payDate: paymentDate,
                   responseCode:responseCode,

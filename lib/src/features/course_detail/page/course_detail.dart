@@ -242,7 +242,7 @@ class _CourseDetailState extends State<CourseDetail> {
                 onPressed: () {
                   Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => PaymentPage(course: widget.course))
+                      MaterialPageRoute(builder: (_) => PaymentPage(courses:[widget.course]))
                   );
                 },
                 style: TextButton.styleFrom(

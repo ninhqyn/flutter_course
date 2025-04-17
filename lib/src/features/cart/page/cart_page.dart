@@ -4,6 +4,7 @@ import 'package:learning_app/src/data/model/cart_item_model.dart';
 import 'package:learning_app/src/features/cart/bloc/cart_bloc.dart';
 import 'package:learning_app/src/features/cart/widget/cart_course_item.dart';
 import 'package:learning_app/src/features/course_detail/page/course_detail.dart';
+import 'package:learning_app/src/features/payment/page/paymet_page.dart';
 import 'package:learning_app/src/shared/utils/price_format.dart';
 class ShoppingCartPage extends StatefulWidget {
   const ShoppingCartPage({super.key});
@@ -168,7 +169,7 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
                 ),
 
                 // Checkout section
-                _buildCheckoutSection(context, state.cartItems),
+                _buildCheckoutSection(context, state.totalPrice),
               ],
             );
           }
@@ -250,13 +251,7 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
     );
   }
 
-  Widget _buildCheckoutSection(BuildContext context, List<CartItemModel> cartItems) {
-    // Tính tổng giá
-    final double totalPrice = cartItems.fold(
-      0,
-          (sum, item) => sum + (item.course.price ?? 0),
-    );
-
+  Widget _buildCheckoutSection(BuildContext context, double totalPrice) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: const BoxDecoration(
@@ -296,15 +291,28 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
           ),
 
           // Nút thanh toán
-          ElevatedButton(
+          BlocBuilder<CartBloc, CartState>(
+  builder: (context, state) {
+    if(state is CartLoaded){
+      return ElevatedButton(
+        onPressed: () {
+          Navigator.push(context, MaterialPageRoute(builder: (_)=>PaymentPage(courses: state.courses)));
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF3B82F6),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        child: const Text(
+          'Thanh toán',
+          style: TextStyle(fontSize: 16,color: Colors.white),
+        ),
+      );
+    }
+    return ElevatedButton(
             onPressed: () {
-              // TODO: Xử lý thanh toán hoặc chuyển sang màn hình checkout
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Chức năng thanh toán chưa được hỗ trợ'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF3B82F6),
@@ -315,9 +323,11 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
             ),
             child: const Text(
               'Thanh toán',
-              style: TextStyle(fontSize: 16),
+              style: TextStyle(fontSize: 16,color: Colors.white),
             ),
-          ),
+          );
+  },
+),
         ],
       ),
     );

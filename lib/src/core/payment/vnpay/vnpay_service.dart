@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:app_links/app_links.dart';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
@@ -7,23 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:learning_app/src/core/constants/api_constants.dart';
 import 'package:learning_app/src/core/network/interceptor/token_interceptor.dart';
 import 'package:learning_app/src/data/repositories/auth_repository.dart';
-import 'package:url_launcher/url_launcher.dart';
-
 class VnPayService {
   final Dio _dio;
   final AuthRepository _authRepository;
   final AppLinks _appLinks = AppLinks();
-  // Callback functions cho kết quả thanh toán
   Function(Map<String, String>)? _onPaymentSuccess;
   Function(Map<String, String>)? _onPaymentFailure;
-
-  // VnPayService(AuthRepository authRepository, {Dio? dio})
-  //     : _dio = dio ?? Dio(BaseOptions(
-  //   baseUrl: 'https://${ApiConstants.baseUrl}',
-  //   connectTimeout: const Duration(seconds: 5),
-  //   receiveTimeout: const Duration(seconds: 3),
-  // )),
-  //       _authRepository = authRepository;
 
   VnPayService(AuthRepository authRepository, {Dio? dio})
       : _dio = dio ?? Dio(BaseOptions(
@@ -40,15 +28,15 @@ class VnPayService {
           (X509Certificate cert, String host, int port) => true;
       return client;
     };
-
   }
+
   Future<String?> createVnPayPayment({
     required double amount,
     required String orderDescription,
     String bankCode = '',
     String language = 'vn',
     String orderType = 'billpayment',
-    required int courseId,
+    required List<int> courses,
     Function(String)? onOrderCreated,
   }) async {
     try {
@@ -64,17 +52,14 @@ class VnPayService {
           'bankCode': bankCode,
           'language': language,
           'orderType': orderType,
-          'courseId': courseId, // URL scheme cho app link
+          'courses': courses,
         },
       );
 
       if (response.statusCode == 200 && response.data['success'] == true) {
-        // Thông báo orderId đã tạo nếu có callback
         if (onOrderCreated != null) {
           onOrderCreated(orderId);
         }
-
-        // Trả về URL thanh toán thay vì mở trình duyệt
         final paymentUrl = response.data['payment_url'];
         return paymentUrl.trim();
       } else {
@@ -85,6 +70,26 @@ class VnPayService {
       debugPrint('Error creating payment: $e');
       return null;
     }
+  }
+
+  Future<String?> createVnPayPaymentSingleCourse({
+    required double amount,
+    required String orderDescription,
+    String bankCode = '',
+    String language = 'vn',
+    String orderType = 'billpayment',
+    required int courseId,
+    Function(String)? onOrderCreated,
+  }) async {
+    return createVnPayPayment(
+      amount: amount,
+      orderDescription: orderDescription,
+      bankCode: bankCode,
+      language: language,
+      orderType: orderType,
+      courses: [courseId],
+      onOrderCreated: onOrderCreated,
+    );
   }
 
   void _handleAppLink(Uri uri) {
@@ -113,21 +118,30 @@ class VnPayService {
     }
   }
 
+  // Đăng ký callbacks cho kết quả thanh toán
+  void registerPaymentCallbacks({
+    required Function(Map<String, String>) onSuccess,
+    required Function(Map<String, String>) onFailure,
+  }) {
+    _onPaymentSuccess = onSuccess;
+    _onPaymentFailure = onFailure;
+
+    // Đăng ký lắng nghe app links
+    _appLinks.uriLinkStream.listen(_handleAppLink);
+  }
 
   // Xác thực kết quả thanh toán với server (nên thực hiện để đảm bảo an toàn)
-  Future<bool> _verifyPaymentResult(Map<String, dynamic> params) async {
-    try {
-
-
-      final response = await _dio.post(
-        '/api/VnPay/verify-payment',
-        data: params,
-      );
-
-      return response.statusCode ==210 && response.data['success'] == true;
-    } catch (e) {
-      debugPrint('Error verifying payment: $e');
-      return false;
-    }
-  }
+  // Future<bool> _verifyPaymentResult(Map<String, dynamic> params) async {
+  //   try {
+  //     final response = await _dio.post(
+  //       '/api/VnPay/verify-payment',
+  //       data: params,
+  //     );
+  //
+  //     return response.statusCode == 210 && response.data['success'] == true;
+  //   } catch (e) {
+  //     debugPrint('Error verifying payment: $e');
+  //     return false;
+  //   }
+  // }
 }

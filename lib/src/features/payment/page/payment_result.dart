@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:learning_app/src/data/model/result_model.dart';
+import 'package:learning_app/src/features/cart/bloc/cart_bloc.dart';
 import 'package:learning_app/src/features/course_detail/bloc/course_detail/course_detail_bloc.dart';
 import 'package:learning_app/src/features/my_course/bloc/my_course_bloc.dart';
 import 'package:learning_app/src/shared/utils/date_time_util.dart';
@@ -198,7 +199,7 @@ class _PaymentResultState extends State<PaymentResult> {
     if(widget.result.isSuccess){
       //update
       context.read<MyCourseBloc>().add(FetchDataMyCourse());
-      context.read<CourseDetailBloc>().add(UpdateEnrollment(courseId:widget.result.courseId));
+      context.read<CartBloc>().add(LoadCart());
     }
   }
 }

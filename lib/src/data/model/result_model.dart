@@ -5,7 +5,6 @@ class ModelResult {
   final bool isSuccess; // Dựa trên vnp_ResponseCode
   final String payDate; // vnp_PayDate - Ngày thanh toán
   final String responseCode;
-  final int courseId;
   ModelResult({
     required this.transactionId,
     required this.amount,
@@ -13,7 +12,6 @@ class ModelResult {
     required this.isSuccess,
     required this.payDate,
     required this.responseCode,
-    required this.courseId
   });
 
 

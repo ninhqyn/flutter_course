@@ -3,15 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:learning_app/src/core/constants/api_constants.dart';
 import 'package:learning_app/src/data/model/result_model.dart';
+import 'package:learning_app/src/features/payment/page/payment_result.dart';
 
 class VnPayWebView extends StatefulWidget {
   final String paymentUrl;
-  final Function(ModelResult)? onPaymentComplete;
 
   const VnPayWebView({
     super.key,
     required this.paymentUrl,
-    this.onPaymentComplete,
   });
 
   @override
@@ -21,59 +20,114 @@ class VnPayWebView extends StatefulWidget {
 class _VnPayWebViewState extends State<VnPayWebView> {
   final GlobalKey webViewKey = GlobalKey();
   bool _isLoading = true;
+  bool _isNavigating = false;
 
   void handleLoadStop(BuildContext context, String url) async {
+    if (_isNavigating) return; // Tránh xử lý nhiều lần
+
     setState(() {
       _isLoading = false;
     });
-    final urlString = url.toString();
-    debugPrint("WebView stop loading URL: $urlString");
-    if (urlString.startsWith('https://${ApiConstants.baseUrl}/api/VnPay/payment-return')) {
-      debugPrint('Callback URL from VNPay: $urlString');
-      final uri = Uri.parse(urlString);
-      final params = uri.queryParameters;
-      final paymentDate = params['vnp_PayDate'] ?? '';
-      final amountString = params['vnp_Amount'] ?? '0';
-      final amount = double.tryParse(amountString) ?? 0.0;
-      final responseCode = params['vnp_ResponseCode'] ?? '';
-      final txnRef = params['vnp_TxnRef'] ?? '';
-      final orderInfo = params['vnp_OrderInfo'] ?? '';
-      final decodedOrderInfo = Uri.decodeComponent(orderInfo);
-      Map<String, dynamic> orderInfoMap = {};
-        orderInfoMap = jsonDecode(decodedOrderInfo);
-        debugPrint("Decoded order info: $orderInfoMap");
-        final description = orderInfoMap['Description'] ?? '';
-        final courseId = orderInfoMap['CourseId'] ?? 0;
-        debugPrint("Description: $description");
 
-      Navigator.of(context).pop();
-      if (widget.onPaymentComplete != null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          widget.onPaymentComplete!(
-              ModelResult(
-                  transactionId: txnRef,
-                  amount: amount/100,
-                  content: courseId,
-                  isSuccess: responseCode == '00',
-                  payDate: paymentDate,
-                  responseCode:responseCode,
-                  courseId: courseId
-              )
-          );
-        });
+    try {
+      final urlString = url.toString();
+      debugPrint("WebView stop loading URL: $urlString");
+
+      if (urlString.startsWith('https://${ApiConstants.baseUrl}/api/VnPay/payment-return')) {
+        _isNavigating = true;
+        debugPrint('Callback URL from VNPay: $urlString');
+
+        // Parse payment data
+        final uri = Uri.parse(urlString);
+        final params = uri.queryParameters;
+
+        final paymentDate = params['vnp_PayDate'] ?? '';
+        final amountString = params['vnp_Amount'] ?? '0';
+        final amount = double.tryParse(amountString) ?? 0.0;
+        final responseCode = params['vnp_ResponseCode'] ?? '';
+        final txnRef = params['vnp_TxnRef'] ?? '';
+        final orderInfo = params['vnp_OrderInfo'] ?? '';
+
+        Map<String, dynamic> orderInfoMap = {};
+        final decodedOrderInfo = Uri.decodeComponent(orderInfo);
+        orderInfoMap = jsonDecode(decodedOrderInfo);
+
+        final description = orderInfoMap['Description'] ?? '';
+
+        final result = ModelResult(
+          transactionId: txnRef,
+          amount: amount/100,
+          content: description,
+          isSuccess: responseCode == '00',
+          payDate: paymentDate,
+          responseCode: responseCode,
+        );
+
+
+        // Pop WebView trước
+        Navigator.of(context).pop();
+        if (!mounted) return;
+        await Future.delayed(const Duration(milliseconds: 100));
+
+        if (!mounted) return;
+
+        // Push màn hình kết quả
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PaymentResult(result: result),
+          ),
+        );
       }
+    } catch (e, stack) {
+      debugPrint('Error handling payment: $e');
+      debugPrint(stack.toString());
+
+      if (!mounted) return;
+
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Error'),
+          content: Text('Payment processing error: $e'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
     }
+  }
+
+  @override
+  void dispose() {
+    _isNavigating = false;
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        // Xử lý nút back
-        Navigator.of(context).pop(null);
+        if (mounted && !_isNavigating) {
+          Navigator.of(context).pop();
+        }
         return false;
       },
       child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Payment'),
+          leading: IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () {
+              if (mounted && !_isNavigating) {
+                Navigator.of(context).pop();
+              }
+            },
+          ),
+        ),
         body: SafeArea(
           child: Stack(
             children: [
@@ -101,21 +155,20 @@ class _VnPayWebViewState extends State<VnPayWebView> {
                   ),
                 ),
                 onLoadStart: (controller, url) {
-                  setState(() {
-                    _isLoading = true;
-                  });
+                  if (mounted) {
+                    setState(() => _isLoading = true);
+                  }
                 },
                 onLoadStop: (controller, url) {
                   handleLoadStop(context, url.toString());
                 },
                 shouldOverrideUrlLoading: (controller, navigationAction) async {
-                  final url = navigationAction.request.url.toString();
-                  debugPrint("Intercepted URL: $url");
                   return NavigationActionPolicy.ALLOW;
                 },
                 onReceivedServerTrustAuthRequest: (controller, challenge) async {
-                  // Chấp nhận mọi chứng chỉ trong môi trường phát triển
-                  return ServerTrustAuthResponse(action: ServerTrustAuthResponseAction.PROCEED);
+                  return ServerTrustAuthResponse(
+                      action: ServerTrustAuthResponseAction.PROCEED
+                  );
                 },
               ),
               if (_isLoading)

@@ -17,6 +17,8 @@ class CartCourseItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final discountedPrice = course.price * (1 - course.discountPercentage / 100);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -36,7 +38,7 @@ class CartCourseItem extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+
             children: [
               // Thumbnail
               Expanded(
@@ -175,14 +177,17 @@ class CartCourseItem extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         // Price
-                        Text(
-                          course.price.toCurrencyVND(),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF3B82F6),
-                          ),
-                        ),
+                        // Text(
+                        //   course.price.toCurrencyVND(),
+                        //   style: const TextStyle(
+                        //     fontSize: 16,
+                        //     fontWeight: FontWeight.bold,
+                        //     color: Color(0xFF3B82F6),
+                        //   ),
+                        // ),
+                        _CoursePricing(originalPrice: course.price,
+                            discountedPrice: discountedPrice,
+                            discountPercentage: course.discountPercentage),
 
                         // Remove button
                         InkWell(
@@ -208,6 +213,81 @@ class CartCourseItem extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+class _CoursePricing extends StatelessWidget {
+  final double originalPrice;
+  final double discountedPrice;
+  final double discountPercentage;
+
+  const _CoursePricing({
+    required this.originalPrice,
+    required this.discountedPrice,
+    required this.discountPercentage,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (discountPercentage > 0) ...[
+          Row(
+            children: [
+              Text(
+                originalPrice.toCurrencyVND(),
+                style: const TextStyle(
+                  decoration: TextDecoration.lineThrough,
+                  color: Colors.grey,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(width: 8),
+              _DiscountBadge(percentage: discountPercentage),
+
+            ],
+          ),
+          Text(
+            discountedPrice.toCurrencyVND(),
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.blue,
+            ),
+          ),
+        ] else
+          Text(
+            originalPrice.toCurrencyVND(),
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.blue,
+            ),
+          ),
+      ],
+    );
+  }
+}
+class _DiscountBadge extends StatelessWidget {
+  final double percentage;
+
+  const _DiscountBadge({required this.percentage});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.red.shade100,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        '-${percentage.toStringAsFixed(0)}%',
+        style: TextStyle(
+          color: Colors.red.shade800,
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
         ),
       ),
     );

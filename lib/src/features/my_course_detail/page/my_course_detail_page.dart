@@ -27,13 +27,11 @@ class _MyCourseDetailPageState extends State<MyCourseDetailPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
-
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-
-      context.read<MyCourseDetailBloc>().add(FetchDataMyCourseDetail(widget.courseId));
+    context.read<MyCourseDetailBloc>().add(FetchDataMyCourseDetail(widget.courseId));
   }
 
   @override
@@ -46,82 +44,130 @@ class _MyCourseDetailPageState extends State<MyCourseDetailPage>
   Widget build(BuildContext context) {
     return SafeArea(
       child: BlocBuilder<MyCourseDetailBloc, MyCourseDetailState>(
-  builder: (context, state) {
-    if(state is MyCourseDetailLoading){
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
-    return Scaffold(
-        appBar: AppBar(
-          centerTitle: true, // Căn giữa title
-          leading: IconButton(
-            icon: SvgPicture.asset(
-              'assets/vector/arrow_left.svg',
-              width: 24,
-              height: 24,
-            ),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-          title: const Text('My Course Detail'),
+        builder: (context, state) {
+          if (state is MyCourseDetailLoading) {
+            return const Scaffold(
+              body: Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3366FF)),
+                ),
+              ),
+            );
+          }
 
-          bottom: TabBar(
-            controller: _tabController,
-            tabs: [
-              Tab(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: const Text(
-                    'Nội dung khóa học',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+          if (state is MyCourseDetailLoaded) {
+            return Scaffold(
+              backgroundColor: const Color(0xFFF8FAFC),
+              appBar: AppBar(
+                elevation: 0,
+                backgroundColor: Colors.white,
+                centerTitle: true,
+                leading: IconButton(
+                  icon: SvgPicture.asset(
+                    'assets/vector/arrow_left.svg',
+                    width: 24,
+                    height: 24,
+                    colorFilter: const ColorFilter.mode(
+                      Color(0xFF2B3A67),
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+                title: Text(
+                  state.course.courseName,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2B3A67),
+                  ),
+                ),
+                bottom: PreferredSize(
+                  preferredSize: const Size.fromHeight(65),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.05),
+                          spreadRadius: 1,
+                          blurRadius: 3,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: TabBar(
+                      controller: _tabController,
+                      indicatorWeight: 3,
+                      indicatorSize: TabBarIndicatorSize.tab,
+                      indicatorColor: const Color(0xFF3366FF),
+                      labelColor: const Color(0xFF3366FF),
+                      unselectedLabelColor: const Color(0xFF64748B),
+                      labelStyle: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      unselectedLabelStyle: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      tabs: [
+                        Tab(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.menu_book_rounded, size: 20),
+                              const SizedBox(width: 8),
+                              const Text('Nội dung khóa học'),
+                            ],
+                          ),
+                        ),
+                        Tab(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.quiz_rounded, size: 20),
+                              const SizedBox(width: 8),
+                              const Text('Bài kiểm tra'),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
-              Tab(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: const Text(
-                    'Bài kiểm tra',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+              body: TabBarView(
+                controller: _tabController,
+                children: [
+                  // Tab 1: Nội dung khóa học
+                  SingleChildScrollView(
+                    child: _buildCourseContentTab(),
                   ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        body: TabBarView(
-          controller: _tabController,
-          children: [
-            // Tab 1: Nội dung khóa học (Module, bài học)
-            SingleChildScrollView(
-              child: _buildCourseContentTab(),
-            ),
 
-            // Tab 2: Bài kiểm tra (Quiz)
-            SingleChildScrollView(
-              child: _buildQuizTab(),
+                  // Tab 2: Bài kiểm tra (Quiz)
+                  SingleChildScrollView(
+                    child: _buildQuizTab(),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return const Scaffold(
+            body: Center(
+              child: Text("Có lỗi xảy ra khi tải thông tin khóa học"),
             ),
-          ],
-        ),
-      );
-  },
-),
+          );
+        },
+      ),
     );
   }
-
   Widget _buildCourseContentTab() {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(20.0),
       child: BlocBuilder<MyCourseDetailBloc, MyCourseDetailState>(
         builder: (context, state) {
           if(state is MyCourseDetailLoaded){
@@ -130,31 +176,74 @@ class _MyCourseDetailPageState extends State<MyCourseDetailPage>
               children: [
                 const Text(
                   'Nội dung khóa học',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                    color: Color(0xFF2B3A67),
+                  ),
                 ),
-                Text(state.course.description),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0F4F8),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        spreadRadius: 1,
+                        blurRadius: 3,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    state.course.description,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      height: 1.5,
+                      color: Color(0xFF4A5568),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
                 ListView.separated(
-                    shrinkWrap: true,
-                    itemCount:state.modules.length,
-                    itemBuilder: (context, index) {
-                      return MyModuleItem(module: state.modules[index], onLessonTap: (UserLesson lesson) {
+                  physics: const NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  itemCount: state.modules.length,
+                  itemBuilder: (context, index) {
+                    return MyModuleItem(
+                      module: state.modules[index],
+                      onLessonTap: (UserLesson lesson) {
                         Navigator.push(context, MaterialPageRoute(builder: (_){
                           return BlocProvider(
-                            create: (context) => PlayListBloc(moduleRepository: context.read<ModuleRepository>(), lessonRepository: context.read<LessonRepository>()),
-                            child: VideoCoursePage(courseId: widget.courseId, moduleId: state.modules[index].moduleId, lessonId: lesson.lessonId,),
+                            create: (context) => PlayListBloc(
+                                moduleRepository: context.read<ModuleRepository>(),
+                                lessonRepository: context.read<LessonRepository>()
+                            ),
+                            child: VideoCoursePage(
+                              courseId: widget.courseId,
+                              moduleId: state.modules[index].moduleId,
+                              lessonId: lesson.lessonId,
+                            ),
                           );
                         }));
-                      },);
-                    }, separatorBuilder: (BuildContext context, int index) {
-                      return const SizedBox(height: 5,);
-                },),
+                      },
+                    );
+                  },
+                  separatorBuilder: (BuildContext context, int index) {
+                    return const SizedBox(height: 16);
+                  },
+                ),
               ],
             );
           }
           return const Center(
-            child: CircularProgressIndicator(),
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3366FF)),
+            ),
           );
-
         },
       ),
     );

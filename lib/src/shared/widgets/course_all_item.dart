@@ -66,16 +66,11 @@ class CourseAllItem extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      course.price.toCurrencyVND(),
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                    ),
-                    SvgPicture.asset('assets/vector/cart.svg')
-                  ],
+                Text(
+                  course.price.toCurrencyVND(),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                 ),
+
               ],
             ),
           ),

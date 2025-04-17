@@ -1,7 +1,13 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:learning_app/src/data/model/answer.dart';
+import 'package:learning_app/src/data/model/answer_select.dart';
 import 'package:learning_app/src/data/model/quiz.dart';
+import 'package:learning_app/src/data/model/quiz_result_request.dart';
+import 'package:learning_app/src/data/model/quiz_result_response.dart';
+import 'package:learning_app/src/data/repositories/quiz_repository.dart';
 import 'package:meta/meta.dart';
 
 part 'quiz_event.dart';
@@ -9,15 +15,22 @@ part 'quiz_state.dart';
 
 class QuizBloc extends Bloc<QuizEvent, QuizState> {
   final Quiz quiz;
+  final QuizRepository _quizRepository;
   Timer? _timer;
 
-  QuizBloc({required this.quiz}) : super(QuizState.initial(quiz.timeLimitMinutes ?? 10)) {
+  QuizBloc({
+    required this.quiz,
+    required QuizRepository quizRepository,
+  }) : _quizRepository = quizRepository,
+        super(QuizState.initial(quiz.timeLimitMinutes ?? 10)) {
+
     on<QuizInitialized>(_onInitialized);
     on<QuizAnswerSelected>(_onAnswerSelected);
     on<QuizNextQuestion>(_onNextQuestion);
     on<QuizPreviousQuestion>(_onPreviousQuestion);
     on<QuizTimerTick>(_onTimerTick);
     on<QuizCompleted>(_onCompleted);
+    on<QuizSubmitted>(_onSubmitted);
 
     // Initialize the quiz and start the timer
     add(QuizInitialized());
@@ -51,36 +64,34 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
   }
 
   void _onAnswerSelected(QuizAnswerSelected event, Emitter<QuizState> emit) {
-    final selectedAnswers = Map<int, int>.from(state.selectedAnswers);
-    selectedAnswers[state.currentQuestionIndex] = event.answerIndex;
+    final currentAnswers = List<AnswerSelect>.from(state.selectedAnswers);
 
-    emit(state.copyWith(selectedAnswers: selectedAnswers));
+    // Kiểm tra xem câu hỏi này đã được trả lời chưa
+    final existingAnswerIndex = currentAnswers.indexWhere(
+            (answer) => answer.questionId == event.answer.questionId
+    );
+
+    if (existingAnswerIndex != -1) {
+      // Nếu đã trả lời rồi, thay thế câu trả lời cũ
+      currentAnswers[existingAnswerIndex] = event.answer;
+    } else {
+      // Nếu chưa trả lời, thêm câu trả lời mới
+      currentAnswers.add(event.answer);
+    }
+
+    emit(state.copyWith(selectedAnswers: currentAnswers));
   }
 
   void _onNextQuestion(QuizNextQuestion event, Emitter<QuizState> emit) {
-    // Calculate score for the current question
-    int updatedScore = state.score;
-    if (state.selectedAnswers.containsKey(state.currentQuestionIndex)) {
-      final currentQuestion = quiz.questions[state.currentQuestionIndex];
-      final selectedAnswerIndex = state.selectedAnswers[state.currentQuestionIndex]!;
-
-      if (selectedAnswerIndex < currentQuestion.answers.length &&
-          currentQuestion.answers[selectedAnswerIndex].isCorrect == true) {
-        updatedScore++;
-      }
-    }
-
     // Check if this is the last question
     if (state.currentQuestionIndex < quiz.questions.length - 1) {
       emit(state.copyWith(
         currentQuestionIndex: state.currentQuestionIndex + 1,
-        score: updatedScore,
       ));
     } else {
       // Quiz is completed
       _timer?.cancel();
       emit(state.copyWith(
-        score: updatedScore,
         isCompleted: true,
       ));
     }
@@ -101,23 +112,34 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
   void _onCompleted(QuizCompleted event, Emitter<QuizState> emit) {
     _timer?.cancel();
 
-    // Calculate final score for answered questions
-    int finalScore = 0;
-    for (int i = 0; i < quiz.questions.length; i++) {
-      if (state.selectedAnswers.containsKey(i)) {
-        final question = quiz.questions[i];
-        final selectedAnswerIndex = state.selectedAnswers[i]!;
-
-        if (selectedAnswerIndex < question.answers.length &&
-            question.answers[selectedAnswerIndex].isCorrect == true) {
-          finalScore++;
-        }
-      }
-    }
-
     emit(state.copyWith(
       isCompleted: true,
-      score: finalScore,
     ));
+
+    // Tự động gửi kết quả khi hoàn thành
+    add(QuizSubmitted(answers: state.selectedAnswers));
+  }
+
+  Future<void> _onSubmitted(QuizSubmitted event, Emitter<QuizState> emit) async {
+    try {
+      final int timeSpentMinutes =
+          ((quiz.timeLimitMinutes ?? 10) * 60 - state.remainingTimeInSeconds) ~/ 60;
+      // Tạo request payload
+      final quizResultRequest = QuizResultRequest(
+        quizId: quiz.quizId,
+        answers: event.answers,
+        timeSpentMinutes: timeSpentMinutes,
+      );
+
+      // Gọi API để gửi kết quả
+      final result = await _quizRepository.submitQuiz(quizResultRequest); // Cập nhật state với kết quả
+      emit(state.copyWith(
+        quizResultResponse: result,
+        isCompleted: true,
+      ));
+    } catch (e) {
+      // Xử lý lỗi - có thể emit state lỗi nếu cần
+      print('Error submitting quiz: $e');
+    }
   }
 }

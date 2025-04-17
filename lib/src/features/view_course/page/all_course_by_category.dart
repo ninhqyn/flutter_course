@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:learning_app/src/data/repositories/course_repository.dart';
 import 'package:learning_app/src/features/course_detail/page/course_detail.dart';
 
 import 'package:learning_app/src/shared/models/category.dart';
@@ -22,7 +23,6 @@ class _AllCourseByCategoryState extends State<AllCourseByCategory> {
   @override
   void initState() {
     super.initState();
-    context.read<CourseByCategoryBloc>().add(FetchDataCourseByCategory(widget.category.categoryId));
     _scrollController.addListener(_onScroll);
   }
 
@@ -42,139 +42,149 @@ class _AllCourseByCategoryState extends State<AllCourseByCategory> {
   }
   @override
   Widget build(BuildContext context) {
-    return SafeArea(child: Scaffold(
-      body: SingleChildScrollView(
-        controller: _scrollController,
-        child: Column(
-          children: [
-            Stack(
-              children: [
-                Container(
-                  height: 220,
-                  color: Colors.pink,
-                  child: Image.network(
-                    widget.category.imageUrl ==null ?'assets/images/background_login.png':
-                    widget.category.imageUrl!,
-                    fit: BoxFit.fill,
-                    width: double.infinity,
-                    height: double.infinity,
-                    errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace){
-                      return Image.asset(
-                        width: double.infinity,
-                        'assets/images/unknown.png',
-                        fit: BoxFit.fill,
-                      );
-                    },
-                  ),
-                ),
-                _appBar(context),
-                Positioned(
-                   top: 100,
-                  left: 10,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+    return BlocProvider(
+  create: (context) => CourseByCategoryBloc(
+      courseRepository: context.read<CourseRepository>()
+  )..add(FetchDataCourseByCategory(widget.category.categoryId)),
+  child: Scaffold(
+      body: Builder(
+        builder: (context) {
+          return SafeArea(
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              child: Column(
+                children: [
+                  Stack(
                     children: [
                       Container(
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(6),
-                            color: Colors.black.withOpacity(0.4)
+                        height: 220,
+                        color: Colors.pink,
+                        child: Image.network(
+                          widget.category.imageUrl ==null ?'assets/images/background_login.png':
+                          widget.category.imageUrl!,
+                          fit: BoxFit.fill,
+                          width: double.infinity,
+                          height: double.infinity,
+                          errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace){
+                            return Image.asset(
+                              width: double.infinity,
+                              'assets/images/unknown.png',
+                              fit: BoxFit.fill,
+                            );
+                          },
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        child: Text(widget.category.categoryName,style: const TextStyle(
-                          fontSize: 24,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold
-                        ),),
                       ),
-                      const SizedBox(height: 10,),
-                      Container(
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(6),
-                            color: Colors.black.withOpacity(0.4)
+                      _appBar(context),
+                      Positioned(
+                         top: 100,
+                        left: 10,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(6),
+                                  color: Colors.black.withOpacity(0.4)
+                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              child: Text(widget.category.categoryName,style: const TextStyle(
+                                fontSize: 24,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold
+                              ),),
+                            ),
+                            const SizedBox(height: 10,),
+                            Container(
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(6),
+                                  color: Colors.black.withOpacity(0.4)
+                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              child: const Text('5 course',style: TextStyle(
+                                  fontSize: 17,
+                                  color: Colors.white
+                              ),),
+                            )
+                          ],
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        child: const Text('5 course',style: TextStyle(
-                            fontSize: 17,
-                            color: Colors.white
-                        ),),
                       )
                     ],
                   ),
-                )
-              ],
-            ),
-            Container(
-              padding: const EdgeInsets.only(
-                top: 15,
-                  left: 15,
-                  right: 15,
-              ),
-              child: BlocBuilder<CourseByCategoryBloc,CourseByCategoryState >(
-                builder: (context, state) {
-                  if(state.status == FetchStatus.success){
-                    if(state.courses.isNotEmpty){
-                      return Column(
-                        children: [
-                          ListView.separated(
-                            shrinkWrap: true,
-                            itemCount: state.courses.length,
-                            scrollDirection: Axis.vertical,
-                            itemBuilder: (context, index) {
-                              return GestureDetector(onTap: (){
-                                Navigator.push(context,MaterialPageRoute(builder: (_){
-                                  return CourseDetail(course: state.courses[index]);
-                                }));
-                              },child: CourseAllItem(course: state.courses[index],));
-                            }, separatorBuilder: (BuildContext context, int index) {
-                            return const Column(
+                  Container(
+                    padding: const EdgeInsets.only(
+                      top: 15,
+                        left: 15,
+                        right: 15,
+                    ),
+                    child: BlocBuilder<CourseByCategoryBloc,CourseByCategoryState >(
+                      builder: (context, state) {
+                        if(state.status == FetchStatus.success){
+                          if(state.courses.isNotEmpty){
+                            return Column(
                               children: [
-                                SizedBox(
-                                  height: 10,
+                                ListView.separated(
+                                  shrinkWrap: true,
+                                  itemCount: state.courses.length,
+                                  scrollDirection: Axis.vertical,
+                                  itemBuilder: (context, index) {
+                                    return GestureDetector(onTap: (){
+                                      Navigator.push(context,MaterialPageRoute(builder: (_){
+                                        return CourseDetail(course: state.courses[index]);
+                                      }));
+                                    },child: CourseAllItem(course: state.courses[index],));
+                                  }, separatorBuilder: (BuildContext context, int index) {
+                                  return const Column(
+                                    children: [
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                      LinearProgressIndicator(
+                                        minHeight: 1,
+                                        value: 1,
+                                        color: Color(0xFFE9EAEC),
+                                      ),
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                    ],
+                                  );
+                                },
                                 ),
-                                LinearProgressIndicator(
-                                  minHeight: 1,
-                                  value: 1,
-                                  color: Color(0xFFE9EAEC),
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                ),
+                                if(state.status == FetchStatus.loadingMore)
+                                  const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 16),
+                                    child: Center(
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  )
                               ],
                             );
-                          },
-                          ),
-                          if(state.status == FetchStatus.loadingMore)
-                            const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 16),
-                              child: Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                            )
-                        ],
-                      );
-                    }
-                  }
-                  if(state.status == FetchStatus.initial){
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  }
-                  if(state.status == FetchStatus.failure){
-                    return const Center(
-                      child: Text('Da xy ra loi'),
-                    );
-                  }
-                  return const Text('Error');
-
-                },
-
+                          }
+                        }
+                        if(state.status == FetchStatus.initial){
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+                        if(state.status == FetchStatus.failure){
+                          return const Center(
+                            child: Text('Da xy ra loi'),
+                          );
+                        }
+                        return const Text('Error');
+                
+                      },
+                
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          );
+        }
       ),
-    )
-    );
+    ),
+);
   }
 
   Widget _appBar(BuildContext context) {

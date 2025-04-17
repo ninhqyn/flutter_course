@@ -1,60 +1,66 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:learning_app/src/data/model/quiz.dart';
+import 'package:learning_app/src/data/model/quiz_result_response.dart';
+import 'package:learning_app/src/data/repositories/quiz_repository.dart';
+import 'package:learning_app/src/features/quiz/bloc/quiz_detail/quiz_detail_bloc.dart';
 import 'package:learning_app/src/features/quiz/page/quiz_screen.dart';
+
 class QuizDetailPage extends StatelessWidget {
   final Quiz quiz;
 
-  // Mock data for quiz history - in a real app, this would come from an API or database
-  final List<QuizAttempt> quizHistory = [
-    QuizAttempt(
-      attemptId: 1,
-      score: 85,
-      totalQuestions: 10,
-      correctAnswers: 8.5,
-      timeTaken: 7,
-      attemptDate: DateTime.now().subtract(Duration(days: 2)),
-      isPassed: true,
-    ),
-    QuizAttempt(
-      attemptId: 2,
-      score: 90,
-      totalQuestions: 10,
-      correctAnswers: 9,
-      timeTaken: 6,
-      attemptDate: DateTime.now().subtract(Duration(days: 1)),
-      isPassed: true,
-    ),
-  ];
-
-  QuizDetailPage({Key? key, required this.quiz}) : super(key: key);
+  QuizDetailPage({super.key, required this.quiz});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Quiz Details'),
-        backgroundColor: Colors.blue.shade800,
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Quiz Header
-            _buildQuizHeader(),
-
-            // Quiz Info
-            _buildQuizInfo(),
-
-            // Quiz Stats
-            _buildQuizStats(),
-
-            // Quiz History
-            _buildQuizHistory(),
-
-            // Start Quiz Button
-            _buildStartQuizButton(context),
-          ],
+    return BlocProvider(
+      create: (context) => QuizDetailBloc(
+          quiz: quiz,
+          quizRepository: context.read<QuizRepository>()
+      )..add(FetchQuizHistory()),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Quiz Details'),
+          backgroundColor: Colors.lightBlue,
         ),
+        body: SafeArea(
+          child: BlocBuilder<QuizDetailBloc, QuizDetailState>(
+            builder: (context, state) {
+              if (state is QuizDetailLoading) {
+                return Center(child: CircularProgressIndicator());
+              } else if (state is QuizDetailLoaded) {
+                return _buildContent(context, state.quizResults);
+              } else {
+                return Center(child: Text('Failed to load quiz details'));
+              }
+            },
+          ),
+        ),
+        bottomNavigationBar: _buildStartQuizButton(context),
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, List<QuizResultResponse> quizResults) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Quiz Header
+          _buildQuizHeader(),
+
+          // Quiz Info
+          _buildQuizInfo(),
+
+          // Quiz Stats
+          _buildQuizStats(quizResults),
+
+          // Quiz History
+          _buildQuizHistory(quizResults),
+
+
+
+        ],
       ),
     );
   }
@@ -64,7 +70,7 @@ class QuizDetailPage extends StatelessWidget {
       width: double.infinity,
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.blue.shade800,
+        color: Colors.lightBlue,
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(30),
           bottomRight: Radius.circular(30),
@@ -179,16 +185,16 @@ class QuizDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildQuizStats() {
+  Widget _buildQuizStats(List<QuizResultResponse> quizResults) {
     // Calculate average score from history
-    double averageScore = quizHistory.isEmpty
+    double averageScore = quizResults.isEmpty
         ? 0
-        : quizHistory.map((e) => e.score).reduce((a, b) => a + b) / quizHistory.length;
+        : quizResults.map((e) => e.score).reduce((a, b) => a + b) / quizResults.length;
 
     // Calculate best score
-    double bestScore = quizHistory.isEmpty
+    double bestScore = quizResults.isEmpty
         ? 0
-        : quizHistory.map((e) => e.score).reduce((a, b) => a > b ? a : b);
+        : quizResults.map((e) => e.score).reduce((a, b) => a > b ? a : b);
 
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -208,7 +214,7 @@ class QuizDetailPage extends StatelessWidget {
               Expanded(
                 child: _buildStatCard(
                   title: 'Attempts',
-                  value: '${quizHistory.length}',
+                  value: '${quizResults.length}',
                   icon: Icons.repeat,
                   color: Colors.orange,
                 ),
@@ -284,7 +290,7 @@ class QuizDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildQuizHistory() {
+  Widget _buildQuizHistory(List<QuizResultResponse> quizResults) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -298,7 +304,7 @@ class QuizDetailPage extends StatelessWidget {
             ),
           ),
           SizedBox(height: 16),
-          quizHistory.isEmpty
+          quizResults.isEmpty
               ? Center(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -314,10 +320,10 @@ class QuizDetailPage extends StatelessWidget {
               : ListView.builder(
             shrinkWrap: true,
             physics: NeverScrollableScrollPhysics(),
-            itemCount: quizHistory.length,
+            itemCount: quizResults.length,
             itemBuilder: (context, index) {
-              final attempt = quizHistory[index];
-              return _buildHistoryCard(attempt);
+              final result = quizResults[index];
+              return _buildHistoryCard(result);
             },
           ),
         ],
@@ -325,7 +331,7 @@ class QuizDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildHistoryCard(QuizAttempt attempt) {
+  Widget _buildHistoryCard(QuizResultResponse result) {
     return Container(
       margin: EdgeInsets.only(bottom: 16),
       padding: EdgeInsets.all(16),
@@ -348,7 +354,7 @@ class QuizDetailPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Attempt #${attempt.attemptId}',
+                'Attempt #${result.attemptNumber}',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
@@ -357,13 +363,13 @@ class QuizDetailPage extends StatelessWidget {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: attempt.isPassed ? Colors.green.shade100 : Colors.red.shade100,
+                  color: result.passed ? Colors.green.shade100 : Colors.red.shade100,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  attempt.isPassed ? 'PASSED' : 'FAILED',
+                  result.passed ? 'PASSED' : 'FAILED',
                   style: TextStyle(
-                    color: attempt.isPassed ? Colors.green.shade800 : Colors.red.shade800,
+                    color: result.passed ? Colors.green.shade800 : Colors.red.shade800,
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
                   ),
@@ -376,18 +382,18 @@ class QuizDetailPage extends StatelessWidget {
             children: [
               _buildAttemptDetail(
                 label: 'Date',
-                value: _formatDate(attempt.attemptDate),
+                value: _formatDate(result.submissionDate),
                 icon: Icons.calendar_today,
               ),
               _buildAttemptDetail(
                 label: 'Score',
-                value: '${attempt.score}%',
+                value: '${result.score.toStringAsFixed(1)}%',
                 icon: Icons.score,
               ),
               _buildAttemptDetail(
-                label: 'Time',
-                value: '${attempt.timeTaken} min',
-                icon: Icons.timer,
+                label: 'Result ID',
+                value: '#${result.resultId}',
+                icon: Icons.assignment,
               ),
             ],
           ),
@@ -395,15 +401,15 @@ class QuizDetailPage extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: LinearProgressIndicator(
-              value: attempt.score / 100,
+              value: result.score / 100,
               backgroundColor: Colors.grey.shade200,
-              color: _getScoreColor(attempt.score),
+              color: _getScoreColor(result.score),
               minHeight: 8,
             ),
           ),
           SizedBox(height: 8),
           Text(
-            'Correct answers: ${attempt.correctAnswers} out of ${attempt.totalQuestions}',
+            'Correct answers: ${result.correctAnswers} out of ${result.totalQuestions}',
             style: TextStyle(
               color: Colors.grey.shade700,
               fontSize: 14,
@@ -454,26 +460,25 @@ class QuizDetailPage extends StatelessWidget {
 
   Widget _buildStartQuizButton(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(16),
-      margin: EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 16),
       child: ElevatedButton(
         onPressed: () {
           // Navigate to quiz taking page
-          // Implementation would depend on your routing setup
-          Navigator.push(context, MaterialPageRoute(builder: (_){
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_){
             return QuizScreen(quiz: quiz);
           }));
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.blue.shade800,
           foregroundColor: Colors.white,
-          padding: EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
           minimumSize: Size(double.infinity, 54),
         ),
-        child: Text(
+        child: const Text(
           'Start Quiz',
           style: TextStyle(
             fontSize: 18,
@@ -493,25 +498,4 @@ class QuizDetailPage extends StatelessWidget {
     if (score >= 60) return Colors.amber;
     return Colors.red;
   }
-}
-
-// Model for quiz attempt history
-class QuizAttempt {
-  final int attemptId;
-  final double score;
-  final double totalQuestions;
-  final double correctAnswers;
-  final int timeTaken; // in minutes
-  final DateTime attemptDate;
-  final bool isPassed;
-
-  QuizAttempt({
-    required this.attemptId,
-    required this.score,
-    required this.totalQuestions,
-    required this.correctAnswers,
-    required this.timeTaken,
-    required this.attemptDate,
-    required this.isPassed,
-  });
 }

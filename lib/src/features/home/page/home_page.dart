@@ -33,10 +33,8 @@ class _HomePageState extends State<HomePage> {
           index: indexSelected,
           children: const [
             ExplorePage(),
-
             SearchPage(),
             MyCoursePage(),
-
             ProfilePage(),
           ],
         ),
@@ -48,7 +46,7 @@ class _HomePageState extends State<HomePage> {
   Widget _bottomNavigator(BuildContext context) {
 
     Color selectedColor = Colors.blue;
-    Color unselectedColor = Colors.grey;
+    Color unselectedColor = Colors.black54;
 
     return Container(
       height: 70,

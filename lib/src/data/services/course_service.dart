@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:learning_app/src/core/constants/api_constants.dart';
 import 'package:learning_app/src/core/network/interceptor/token_interceptor.dart';
 import 'package:learning_app/src/data/model/user_course.dart';
@@ -163,8 +164,8 @@ class CourseService {
       }
       return const <Course>[];
     } on DioException catch (e) {
-      print('Error filtering courses: ${e.message}');
-      print('Error details: ${e.response?.data}');
+      debugPrint('Error filtering courses: ${e.message}');
+      debugPrint('Error details: ${e.response?.data}');
       return const <Course>[];
     }
   }
@@ -180,7 +181,7 @@ class CourseService {
         throw Exception('Failed to load course');
       }
     } on DioException catch (e) {
-      rethrow;
+      rethrow ;
     }
   }
   Future<bool> checkEnrollment(int courseId) async {
@@ -196,6 +197,19 @@ class CourseService {
       return false;
     } on DioException catch (e) {
       rethrow;
+    }
+  }
+  Future<List<Course>> getAllCourseByInstructorId(int instructorId) async{
+    try {
+      final response = await _dio.get('${ApiConstants.courseByInstructorId}/$instructorId');
+      if (response.statusCode == 200) {
+        final List<dynamic> courseJson = response.data;
+        return courseJson.map((json) => Course.fromJson(json)).toList();
+      }
+      return const <Course>[];
+    } on DioException catch (e) {
+      debugPrint('Error getting favorite courses: ${e.message}');
+      return const <Course>[];
     }
   }
 

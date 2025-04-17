@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 import 'package:learning_app/src/data/repositories/category_repository.dart';
 import 'package:learning_app/src/data/repositories/course_repository.dart';
 
@@ -26,27 +27,46 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     final categories = await categoryRepository.getAllCategory();
     emit(SearchLoaded(categories:categories));
   }
-  Future<void> _onTextSearchChanged(TextSearchChanged event,Emitter<SearchState> emit) async{
-    if(state is SearchLoaded){
-      print(event.inputText);
+  Future<void> _onTextSearchChanged(TextSearchChanged event, Emitter<SearchState> emit) async {
+    if (state is SearchLoaded) {
       final currentState = state as SearchLoaded;
-      final filterCourse = await courseRepository.getFilterCourse(event.inputText);
-      final categories = await categoryRepository.getAllCategory();
-      final allCategory = Category(
-          categoryId: 0,
-          categoryName: 'All',
-          description: '',
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now());
-      List<Category> categoriesAll = [allCategory,...categories];
-      if(event.inputText.isNotEmpty){
-        emit(currentState.copyWith(filterCourses: filterCourse,keyword: event.inputText,categories: categoriesAll));
-      }else{
-        emit(currentState.copyWith(filterCourses: filterCourse,keyword: event.inputText,categories: categories));
+      final trimmedInput = event.inputText.trim();
+
+      if (trimmedInput.isEmpty) {
+        // Nếu input rỗng, emit state ngay lập tức để UI update
+        emit(currentState.copyWith(
+          filterCourses: [],
+          keyword: '',
+          categories: await categoryRepository.getAllCategory(), // Không thêm 'All'
+        ));
+        return;
       }
 
+      // Nếu có input -> load dữ liệu lọc và thêm 'All'
+      emit(currentState.copyWith(filterCourses: [], keyword: trimmedInput)); // Clear nhanh UI
+
+      final filterCourse = await courseRepository.getFilterCourse(trimmedInput);
+      final categories = await categoryRepository.getAllCategory();
+
+      final allCategory = Category(
+        categoryId: 0,
+        categoryName: 'All',
+        description: '',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      List<Category> categoriesAll = [allCategory, ...categories];
+
+      emit(currentState.copyWith(
+        filterCourses: filterCourse,
+        keyword: trimmedInput,
+        categories: categoriesAll,
+      ));
     }
   }
+
+
   Future<void> _onCategorySelected(SearchCategorySelected event,Emitter<SearchState> emit) async{
     if(state is SearchLoaded){
       final currentState = state as SearchLoaded;

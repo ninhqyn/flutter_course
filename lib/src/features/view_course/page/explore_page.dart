@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:learning_app/src/core/constants/type_constants.dart';
-import 'package:learning_app/src/core/routes/routes_name.dart';
+
 import 'package:learning_app/src/features/all_categories/page/all_categories_page.dart';
+import 'package:learning_app/src/features/cart/bloc/cart_bloc.dart';
 import 'package:learning_app/src/features/course_detail/page/course_detail.dart';
 
 import 'package:learning_app/src/shared/models/category.dart';
@@ -65,43 +66,43 @@ class _ExplorePageState extends State<ExplorePage> {
   Widget build(BuildContext context) {
     final controller = ScrollController();
     return SafeArea(
-      child: Scaffold(
-        body: CustomScrollView(
-          controller: controller,
-          slivers: [
-            SliverAppBar(
-              pinned: true, // Giữ app bar luôn hiển thị
-              expandedHeight: 60.0,// Thiết lập chiều cao tối đa của app bar
-              flexibleSpace: FlexibleSpaceBar(
-                title: AnimatedBuilder(
-                  animation: controller,
-                  builder: (context, child) {
-                    double offset = controller.offset;
-                    double alignment = offset > 50 ? 0.0 : -1.0;
-                    return Align(
-                      alignment: Alignment(alignment, 1),
-                      child: const Text(
-                        '  Explore',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+        child: Scaffold(
+          body: CustomScrollView(
+            controller: controller,
+            slivers: [
+              SliverAppBar(
+                pinned: true, // Giữ app bar luôn hiển thị
+                expandedHeight: 60.0,// Thiết lập chiều cao tối đa của app bar
+                flexibleSpace: FlexibleSpaceBar(
+                  title: AnimatedBuilder(
+                    animation: controller,
+                    builder: (context, child) {
+                      double offset = controller.offset;
+                      double alignment = offset > 50 ? 0.0 : -1.0;
+                      return Align(
+                        alignment: Alignment(alignment, 1),
+                        child: const Text(
+                          '  Explore',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
+                  centerTitle: true,
                 ),
-                centerTitle: true,
+                backgroundColor: Colors.white,
               ),
-              backgroundColor: Colors.white,
-            ),
-            // Thêm Column bên trong SliverToBoxAdapter
-            SliverToBoxAdapter(
-              child: _contentExplore(context)
-            ),
-          ],
+              // Thêm Column bên trong SliverToBoxAdapter
+              SliverToBoxAdapter(
+                child: _contentExplore(context)
+              ),
+            ],
+          ),
         ),
-      ),
-    );
+      );
   }
 
   Widget _contentExplore(BuildContext context){
@@ -205,9 +206,12 @@ class _ExplorePageState extends State<ExplorePage> {
                       children: courses.map((course) {
                         return Padding(
                           padding: const EdgeInsets.only(right: 15),
-                          child: InkWell(onTap: (){
+                          child: CourseItem(
+                            course: course,
+                            onTap: (){
                             handleNavigatorCourseDetail(course);
-                          },child: CourseItem(course: course)),
+                          },
+                          ),
                         );
                       }).toList(),
                     ),
@@ -260,7 +264,9 @@ class _ExplorePageState extends State<ExplorePage> {
                           padding: const EdgeInsets.only(right: 15),
                           child: InkWell(onTap: (){
                             handleNavigatorCourseDetail(course);
-                          },child: CourseItem(course: course)),
+                          },child: CourseItem(
+                            course: course,
+                          )),
                         );
                       }).toList(),
                     ),

@@ -9,6 +9,7 @@ class ApiConstants{
   static const String courseFilter = '/api/Course/filter';
   static const String userCourse = '/api/Course/user-courses';
   static const String checkEnrollment = '/api/Course/check-enrollment';
+  static const String courseByInstructorId = '/api/Course/instructor';
   //Category
   static const String category='api/Category';
 
@@ -43,8 +44,18 @@ class ApiConstants{
   //Quiz
   static const String quiz = '/api/Quiz';
   static const String quizByCourse = '/api/Quiz/course';
+  static const String quizResult = '/api/Quiz/quiz-result';
+  static const String getAllQuizResult ='/api/Quiz/GetAll/quiz-result';
 
   //Lesson
   static const String lessonProgress = '/api/Lesson/progress';
+
+  //Cart
+  static const String cart ='/api/Cart';
+  static const String addToCart ="/api/Cart/add";
+  static const String removeCart ='/api/Cart/remove';
+  static const String getCartItem ='/api/Cart';
+  static const String clearCart ='/api/Cart/clear';
+  static const String checkCart ='/api/Cart/check';
 
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:learning_app/src/core/routes/routes_name.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:learning_app/src/data/repositories/cart_repository.dart';
 import 'package:learning_app/src/data/repositories/lesson_repository.dart';
 import 'package:learning_app/src/data/repositories/quiz_repository.dart';
 import 'package:learning_app/src/data/repositories/user_repository.dart';
@@ -15,6 +16,7 @@ import 'package:learning_app/src/data/repositories/instructor_repository.dart';
 import 'package:learning_app/src/data/repositories/module_repository.dart';
 import 'package:learning_app/src/data/repositories/rating_repository.dart';
 import 'package:learning_app/src/data/repositories/skill_repository.dart';
+import 'package:learning_app/src/data/services/cart_service.dart';
 
 import 'package:learning_app/src/data/services/instructor_service.dart';
 import 'package:learning_app/src/data/services/lesson_service.dart';
@@ -23,22 +25,19 @@ import 'package:learning_app/src/data/services/quiz_service.dart';
 import 'package:learning_app/src/data/services/rating_service.dart';
 import 'package:learning_app/src/data/services/skill_service.dart';
 import 'package:learning_app/src/data/services/user_service.dart';
+import 'package:learning_app/src/features/cart/bloc/cart_bloc.dart';
 import 'package:learning_app/src/features/course_detail/bloc/course_detail/course_detail_bloc.dart';
 import 'package:learning_app/src/features/my_course/bloc/my_course_bloc.dart';
 import 'package:learning_app/src/features/my_course_detail/bloc/my_course_detail_bloc.dart';
-import 'package:learning_app/src/features/payment/page/paymet_page.dart';
-import 'package:learning_app/src/features/payment/page/paymet_result.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'src/core/routes/routes.dart';
 import 'src/data/repositories/category_repository.dart';
 import 'src/data/repositories/course_repository.dart';
 import 'src/data/services/category_api_client.dart';
 import 'src/data/services/course_service.dart';
 import 'src/features/auth/bloc/auth_bloc/auth_bloc.dart';
-import 'src/features/view_course/bloc/course_by_category/course_by_category_bloc.dart';
 import 'src/features/view_course/bloc/explore/explore_bloc.dart';
-import 'src/features/view_course/bloc/search/search_bloc.dart';
+
 
 
 
@@ -61,6 +60,7 @@ class _AppState extends State<App> {
   late final UserRepository _userRepository;
   late final QuizRepository _quizRepository;
   late final LessonRepository _lessonRepository;
+  late final CartRepository _cartRepository;
   @override
   void initState() {
     super.initState();
@@ -73,8 +73,10 @@ class _AppState extends State<App> {
     _moduleRepository = ModuleRepository(moduleService: ModuleService(_authRepository));
     _ratingRepository = RatingRepository(ratingService: RatingService());
     _userRepository = UserRepository(userService: UserService(_authRepository));
-    _quizRepository = QuizRepository(quizService: QuizService());
+    _quizRepository = QuizRepository(quizService: QuizService(_authRepository));
     _lessonRepository = LessonRepository(lessonService: LessonService(_authRepository));
+    _cartRepository = CartRepository(CartService(_authRepository));
+
 
   }
 
@@ -123,15 +125,7 @@ class _AppState extends State<App> {
                   categoryRepository: _categoryRepository
               );
             }),
-            BlocProvider(create: (_) {
-              return CourseByCategoryBloc(courseRepository: _courseRepository);
-            }),
-            BlocProvider(create: (_) {
-              return SearchBloc(
-                  categoryRepository: _categoryRepository,
-                  courseRepository: _courseRepository
-              );
-            }),
+
             BlocProvider(create: (_) {
               return AuthBloc(authRepository: _authRepository);
             }),
@@ -147,7 +141,10 @@ class _AppState extends State<App> {
                   moduleRepository: _moduleRepository,
                   courseRepository: _courseRepository,
                   ratingRepository: _ratingRepository);
-            })
+            }),
+            BlocProvider(create: (_){
+              return CartBloc(_cartRepository);
+            }),
           ],
           child: const AppView(),
         )
@@ -176,7 +173,6 @@ class _AppViewState extends State<AppView> {
         child = DevicePreview.appBuilder(context, child);
         return BlocListener<AuthBloc, AuthState>(
           listener: (context, state) {
-            print('state:$state');
             switch (state.status) {
               case AuthStatus.authenticated:
                 _navigator.pushNamedAndRemoveUntil(

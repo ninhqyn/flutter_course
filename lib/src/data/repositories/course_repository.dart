@@ -53,5 +53,9 @@ class CourseRepository{
     final result = await courseService.checkEnrollment(courseId);
     return result;
   }
+  Future<List<Course>> getAllCourseByInstructorId(int instructorId) async{
+    final results = await courseService.getAllCourseByInstructorId(instructorId);
+    return results;
+  }
 
 }

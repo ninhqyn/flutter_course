@@ -4,15 +4,10 @@ import 'package:flutter_svg/svg.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:learning_app/src/core/constants/text_constants.dart';
-import 'package:learning_app/src/data/repositories/course_repository.dart';
-
-import 'package:learning_app/src/data/repositories/instructor_repository.dart';
-import 'package:learning_app/src/data/repositories/module_repository.dart';
-import 'package:learning_app/src/data/repositories/rating_repository.dart';
-import 'package:learning_app/src/data/repositories/skill_repository.dart';
-
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:learning_app/src/features/instructor_page/page/instructor_page.dart';
+import 'package:learning_app/src/features/cart/bloc/cart_bloc.dart';
+import 'package:learning_app/src/features/cart/page/cart_page.dart';
+import 'package:learning_app/src/features/instructor/page/instructor_page.dart';
 import 'package:learning_app/src/features/my_course_detail/page/my_course_detail_page.dart';
 import 'package:learning_app/src/features/payment/page/paymet_page.dart';
 import 'package:learning_app/src/features/review/page/review_page.dart';
@@ -57,7 +52,51 @@ class _CourseDetailState extends State<CourseDetail> {
   }
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
+    return BlocListener<CartBloc, CartState>(
+      listener: (context, state) {
+        if (state is CartAdded) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.white),
+                  const SizedBox(width: 10),
+                  Expanded(child: Text(state.message)),
+                ],
+              ),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              duration: const Duration(seconds: 2),
+              elevation: 6,
+            ),
+          );
+        }
+
+        if (state is CartAddError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.error, color: Colors.white),
+                  const SizedBox(width: 10),
+                  Expanded(child: Text(state.message)),
+                ],
+              ),
+              backgroundColor: Colors.redAccent,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              duration: const Duration(seconds: 3),
+              elevation: 6,
+            ),
+          );
+        }
+      },
+  child: SafeArea(
       child:  BlocBuilder<CourseDetailBloc, CourseDetailState>(
         builder: (context, state) {
           if(state is CourseDetailLoading){
@@ -75,7 +114,7 @@ class _CourseDetailState extends State<CourseDetail> {
                 if(state is CourseDetailLoaded){
                   if(state.isEnrollment){
                     return SizedBox(
-                      height: 60,
+                      height: 50,
                       child: ElevatedButton(
                         onPressed: () {
                           handleNavigatorMyCourseDetail(state.courseId);
@@ -105,40 +144,35 @@ class _CourseDetailState extends State<CourseDetail> {
           );
         },
       ),
-    );
+    ),
+);
   }
 
-  Widget _navigator(BuildContext context){
+  Widget _navigator(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
+        // Left side - Price information
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: widget.course.discountPercentage > 0
+              ? MainAxisAlignment.start
+              : MainAxisAlignment.center,
           children: [
-            // Giá gốc (có gạch ngang nếu có giảm giá)
-            widget.course.discountPercentage > 0
-                ? Text(
-              'Giá gốc: ${widget.course.price.toCurrencyVND()}',
-              style: const TextStyle(
-                decoration: TextDecoration.lineThrough,
-                color: Colors.grey,
-                fontSize: 14,
-              ),
-            )
-                : Text(
-              'Giá: ${widget.course.price.toCurrencyVND()}',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-
-            // Hiển thị phần giảm giá nếu có
             if (widget.course.discountPercentage > 0) ...[
+              // Original price with strikethrough
+              Text(
+                'Giá gốc: ${widget.course.price.toCurrencyVND()}',
+                style: const TextStyle(
+                  decoration: TextDecoration.lineThrough,
+                  color: Colors.grey,
+                  fontSize: 14,
+                ),
+              ),
               const SizedBox(height: 4),
+              // Discounted price and discount badge
               Row(
                 children: [
-                  // Giá sau giảm
                   Text(
                     'Giá: ${(widget.course.price * (1 - widget.course.discountPercentage / 100)).toCurrencyVND()}',
                     style: TextStyle(
@@ -165,36 +199,67 @@ class _CourseDetailState extends State<CourseDetail> {
                   ),
                 ],
               ),
-            ],
+            ] else
+            // Regular price (non-discounted) - centered vertically
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: Text(
+                  'Giá: ${widget.course.price.toCurrencyVND()}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
           ],
         ),
+
+        // Right side - Cart and Enroll button
         Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Container(
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                      width: 1,
-                      color: Colors.black.withOpacity(0.1)
-                  )
-              ),
-              child: SvgPicture.asset(
-                'assets/vector/cart.svg',color: Colors.pink,
+            GestureDetector(
+              onTap: () {
+                print('handle add to cart');
+                context.read<CartBloc>().add(AddToCart(widget.course.courseId));
+              },
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                        width: 1,
+                        color: Colors.black.withOpacity(0.1)
+                    )
+                ),
+                child: SvgPicture.asset(
+                  'assets/vector/cart.svg',
+                ),
               ),
             ),
-            const SizedBox(width: 10,),
-            TextButton(onPressed: (){
-              Navigator.push(context, MaterialPageRoute(builder: (_)=> PaymentPage(course: widget.course,)));
-            }, style: TextButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(5)
+            const SizedBox(width: 10),
+            TextButton(
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => PaymentPage(course: widget.course))
+                  );
+                },
+                style: TextButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5)
+                    ),
+                    backgroundColor: Colors.blue
                 ),
-                backgroundColor: Colors.blue
-            ),child: const Text('Enroll now',style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-                color: Colors.white
-            ),))
+                child: const Text(
+                  'Enroll now',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                      color: Colors.white
+                  ),
+                )
+            )
           ],
         )
       ],
@@ -539,9 +604,12 @@ class _CourseDetailState extends State<CourseDetail> {
                         children: courses.map((course) {
                           return Padding(
                             padding: const EdgeInsets.only(right: 15),
-                            child: InkWell(onTap: (){
-                              handleNavigatorCourseDetail(course);
-                            },child: CourseItem(course: course)),
+                            child: CourseItem(
+                              course: course,
+                              onTap: (){
+                                handleNavigatorCourseDetail(course);
+                              },
+                            ),
                           );
                         }).toList(),
                       ),
@@ -596,7 +664,9 @@ class _CourseDetailState extends State<CourseDetail> {
             },child: SvgPicture.asset('assets/vector/arrow_left.svg')),
             Row(
               children: [
-                SvgPicture.asset('assets/vector/cart.svg'),
+                GestureDetector(onTap: (){
+                  Navigator.push(context, MaterialPageRoute(builder: (_)=> const ShoppingCartPage()));
+                },child: SvgPicture.asset('assets/vector/cart.svg')),
                 const SizedBox(width: 20,),
                 SvgPicture.asset('assets/vector/share.svg'),
               ],

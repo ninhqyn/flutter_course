@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:learning_app/src/data/model/answer_select.dart';
 import 'package:learning_app/src/data/model/quiz.dart';
-import 'package:learning_app/src/features/quiz/bloc/quiz_bloc.dart';
+import 'package:learning_app/src/data/repositories/quiz_repository.dart';
+import 'package:learning_app/src/features/quiz/bloc/quiz/quiz_bloc.dart';
+import 'package:learning_app/src/features/quiz/page/quiz_detail_page.dart';
 import 'package:learning_app/src/features/quiz/page/result_screen.dart';
 
 class QuizScreen extends StatelessWidget {
@@ -11,7 +14,10 @@ class QuizScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => QuizBloc(quiz: quiz),
+      create: (context) => QuizBloc(
+        quiz: quiz,
+        quizRepository: context.read<QuizRepository>(),
+      ),
       child: const _QuizScreenContent(),
     );
   }
@@ -29,8 +35,7 @@ class _QuizScreenContent extends StatelessWidget {
             MaterialPageRoute(
               builder: (_) => ResultScreen(
                 quiz: context.read<QuizBloc>().quiz,
-                score: state.score,
-                selectedAnswers: state.selectedAnswers,
+                quizResultResponse: state.quizResultResponse,
               ),
             ),
           );
@@ -44,17 +49,44 @@ class _QuizScreenContent extends StatelessWidget {
         return SafeArea(
           child: Scaffold(
             appBar: AppBar(
-              title:
-                  Text(bloc.quiz.quizName,style: const TextStyle(
-                      fontWeight: FontWeight.bold
-                  )
+              title: Text(
+                  bloc.quiz.quizName,
+                  style: const TextStyle(fontWeight: FontWeight.bold)
               ),
               centerTitle: true,
               elevation: 0,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () async {
+                  final shouldPop = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Xác nhận'),
+                      content: const Text('Bạn có chắc chắn muốn thoát?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: const Text('Hủy'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          child: const Text('Thoát'),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  if (shouldPop == true) {
+                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_){
+                      return QuizDetailPage(quiz: context.read<QuizBloc>().quiz);
+                    })); // Thực hiện thoát
+                  }
+                },
+
+              ),
             ),
             body: Column(
               children: [
-
                 // Quiz timer display
                 // Question counter and progress
                 Padding(
@@ -129,12 +161,27 @@ class _QuizScreenContent extends StatelessWidget {
                     padding: const EdgeInsets.all(16.0),
                     itemCount: options.length,
                     itemBuilder: (context, index) {
-                      final isSelected = state.selectedAnswers[state.currentQuestionIndex] == index;
+                      // Tìm xem câu hỏi hiện tại có được trả lời chưa
+                      final selectedAnswer = state.selectedAnswers.firstWhere(
+                            (answer) => answer.questionId == currentQuestion.questionId,
+                        orElse: () => AnswerSelect(questionId: -1, answerId: -1),
+                      );
+
+                      // Kiểm tra xem câu trả lời này có được chọn không
+                      final isSelected = selectedAnswer.questionId != -1 &&
+                          selectedAnswer.answerId == currentQuestion.answers[index].answerId;
 
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12.0),
                         child: GestureDetector(
-                          onTap: () => context.read<QuizBloc>().add(QuizAnswerSelected(index)),
+                          onTap: () {
+                            // Tạo đối tượng AnswerSelect khi người dùng chọn câu trả lời
+                            final answer = AnswerSelect(
+                              questionId: currentQuestion.questionId,
+                              answerId: currentQuestion.answers[index].answerId,
+                            );
+                            context.read<QuizBloc>().add(QuizAnswerSelected(answer: answer));
+                          },
                           child: Card(
                             elevation: isSelected ? 4 : 2,
                             shape: RoundedRectangleBorder(
@@ -215,47 +262,55 @@ class _QuizScreenContent extends StatelessWidget {
 
                       // Next/Finish button
                       ElevatedButton(
-                        onPressed: state.selectedAnswers.containsKey(state.currentQuestionIndex)
-                            ? () {
-                          if (state.currentQuestionIndex < bloc.quiz.questions.length - 1) {
-                            context.read<QuizBloc>().add(QuizNextQuestion());
-                          } else {
-                            // Show confirmation dialog if it's the final question
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext dialogContext) {
-                                return AlertDialog(
-                                  title: const Text('Finish Quiz'),
-                                  content: const Text('Are you sure you want to finish the quiz?'),
-                                  actions: <Widget>[
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.of(dialogContext).pop(); // Close the dialog
-                                      },
-                                      child: const Text('Cancel'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        // Trigger finish quiz event or any required action here
-                                        context.read<QuizBloc>().add(QuizCompleted());
-                                        Navigator.of(dialogContext).pop(); // Close the dialog
-                                      },
-                                      child: const Text('Yes'),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
+                        onPressed: () {
+                          // Kiểm tra xem câu hỏi hiện tại đã được trả lời chưa
+                          final currentQuestionAnswered = state.selectedAnswers.any(
+                                  (answer) => answer.questionId == currentQuestion.questionId
+                          );
+
+                          if (currentQuestionAnswered) {
+                            if (state.currentQuestionIndex < bloc.quiz.questions.length - 1) {
+                              context.read<QuizBloc>().add(QuizNextQuestion());
+                            } else {
+                              // Show confirmation dialog if it's the final question
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext dialogContext) {
+                                  return AlertDialog(
+                                    title: const Text('Finish Quiz'),
+                                    content: const Text('Are you sure you want to finish the quiz?'),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(dialogContext).pop(); // Close the dialog
+                                        },
+                                        child: const Text('Cancel'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          // Trigger finish quiz event or any required action here
+                                          context.read<QuizBloc>().add(QuizCompleted());
+                                          Navigator.of(dialogContext).pop(); // Close the dialog
+                                        },
+                                        child: const Text('Yes'),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            }
                           }
-                        }
-                            : null,
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.lightBlue,
                           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
+                          disabledBackgroundColor: Colors.grey.shade300,
                         ),
+                        // Kiểm tra xem câu hỏi hiện tại đã được trả lời chưa
+                        // để quyết định xem nút Next/Finish có được kích hoạt không
                         child: Text(
                           state.currentQuestionIndex < bloc.quiz.questions.length - 1
                               ? 'Next'
@@ -267,7 +322,6 @@ class _QuizScreenContent extends StatelessWidget {
                           ),
                         ),
                       ),
-
                     ],
                   ),
                 ),

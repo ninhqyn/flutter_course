@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:learning_app/src/data/repositories/category_repository.dart';
+import 'package:learning_app/src/data/repositories/course_repository.dart';
+import 'package:learning_app/src/features/cart/page/cart_page.dart';
 import 'package:learning_app/src/features/view_course/page/all_course_by_category.dart';
 import 'package:learning_app/src/shared/models/category.dart';
 import 'package:learning_app/src/shared/models/course.dart';
@@ -11,25 +13,18 @@ import 'package:learning_app/src/shared/widgets/category_item_vertical.dart';
 import 'package:learning_app/src/shared/widgets/course_all_item.dart';
 
 import '../bloc/search/search_bloc.dart';
-
-
-
-
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
-
   @override
   State<SearchPage> createState() => _SearchPageState();
 }
 
 class _SearchPageState extends State<SearchPage> {
-
   final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    context.read<SearchBloc>().add(FetchDataSearch());
   }
 
   @override
@@ -40,29 +35,39 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: _appBar(),
-        body: BlocBuilder<SearchBloc, SearchState>(
-          builder: (context, state) {
-            final hasInput = _searchController.text.isNotEmpty;
-            if (state is SearchLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
+    return BlocProvider(
+  create: (context) => SearchBloc(
+      categoryRepository: context.read<CategoryRepository>(),
+      courseRepository: context.read<CourseRepository>())..add(FetchDataSearch()
+  ),
+  child: Builder(
+    builder: (context) {
+      return Scaffold(
+          appBar: _appBar(context),
+          body: SafeArea(
+            child: BlocBuilder<SearchBloc, SearchState>(
+              builder: (context, state) {
+                final hasInput = _searchController.text.isNotEmpty;
+                if (state is SearchLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-            if (state is SearchLoaded) {
+                if (state is SearchLoaded) {
 
-              return hasInput
-                  ? _inputWidget(state.categories,state.filterCourses!=null ? state.filterCourses! : const<Course>[],state.categorySelected)
-                  : _noneInputWidget(state.categories);
-            }
+                  return hasInput
+                      ? _inputWidget(state.categories,state.filterCourses!=null ? state.filterCourses! : const<Course>[],state.categorySelected)
+                      : _noneInputWidget(state.categories);
+                }
 
-            // Fallback
-            return const Center(child: Text('An error occurred'));
-          },
-        ),
-      ),
-    );
+                // Fallback
+                return const Center(child: Text('An error occurred'));
+              },
+            ),
+          ),
+        );
+    }
+  ),
+);
   }
 
   Widget _noneInputWidget(List<Category> categories) {
@@ -181,7 +186,7 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  PreferredSize _appBar() {
+  PreferredSize _appBar(BuildContext context) {
     final hasInput = _searchController.text.isNotEmpty;
     return PreferredSize(
       preferredSize: const Size(double.infinity, 50),
@@ -225,7 +230,11 @@ class _SearchPageState extends State<SearchPage> {
                 )
             ),
             const SizedBox(width: 10),
-            SvgPicture.asset('assets/vector/cart.svg', width: 34, height: 34)
+            GestureDetector(onTap: (){
+              Navigator.push(context, MaterialPageRoute(builder: (_){
+                return const ShoppingCartPage();
+              }));
+            },child: SvgPicture.asset('assets/vector/cart.svg', width: 34, height: 34))
           ],
         ),
       ),

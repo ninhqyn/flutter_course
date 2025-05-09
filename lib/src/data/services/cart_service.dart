@@ -15,7 +15,6 @@ class CartService {
       : _dio = dio ?? Dio(BaseOptions(
     baseUrl: 'https://${ApiConstants.baseUrl}',
   )) {
-    // Add the token interceptor to automatically inject auth token
     _dio.interceptors.add(TokenInterceptor(authRepository: _authRepository, dio: _dio));
 
     (_dio.httpClientAdapter as IOHttpClientAdapter).onHttpClientCreate =

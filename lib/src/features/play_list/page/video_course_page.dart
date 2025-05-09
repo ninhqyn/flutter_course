@@ -341,27 +341,15 @@ class _VideoCoursePageState extends State<VideoCoursePage> {
                                 leading: Stack(
                                   alignment: Alignment.center,
                                   children: [
-                                    ClipRRect(
-                                        borderRadius: BorderRadius.circular(4),
-                                        child:Image.network(
-                                          'https://res.cloudinary.com/depram2im/image/upload/v1743389798/ai_clsgh6.jpg',
-                                          width: 100,
-                                          height: 100,
-                                          fit: BoxFit.fill,
-                                          errorBuilder: (context, error, stackTrace) {
-                                            return Container(
-                                              width: 80,
-                                              height: 50,
-                                              color: Colors.grey[300],
-                                              child: Icon(Icons.video_library, color: Colors.grey[600]),
-                                            );
-                                          },
-                                        )
-                                    ),
+
                                     Container(
                                       width: 80,
-                                      height: 45,
-                                      color: Colors.black.withOpacity(0.2),
+                                      height: 80,
+                                      
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(15)
+                                      ),
                                       child: Icon(
                                         isCurrentVideo ? Icons.pause : Icons.play_arrow,
                                         color: Colors.white,

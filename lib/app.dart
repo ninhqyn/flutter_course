@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:learning_app/src/core/routes/routes_name.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:learning_app/src/core/theme/app_theme.dart';
 import 'package:learning_app/src/data/repositories/cart_repository.dart';
 import 'package:learning_app/src/data/repositories/lesson_repository.dart';
+import 'package:learning_app/src/data/repositories/payment_repository.dart';
 import 'package:learning_app/src/data/repositories/quiz_repository.dart';
 import 'package:learning_app/src/data/repositories/user_repository.dart';
 
@@ -21,6 +23,7 @@ import 'package:learning_app/src/data/services/cart_service.dart';
 import 'package:learning_app/src/data/services/instructor_service.dart';
 import 'package:learning_app/src/data/services/lesson_service.dart';
 import 'package:learning_app/src/data/services/module_service.dart';
+import 'package:learning_app/src/data/services/payment_service.dart';
 import 'package:learning_app/src/data/services/quiz_service.dart';
 import 'package:learning_app/src/data/services/rating_service.dart';
 import 'package:learning_app/src/data/services/skill_service.dart';
@@ -61,13 +64,13 @@ class _AppState extends State<App> {
   late final QuizRepository _quizRepository;
   late final LessonRepository _lessonRepository;
   late final CartRepository _cartRepository;
+  late final PaymentRepository _paymentRepository;
   @override
   void initState() {
     super.initState();
     _authRepository = AuthRepository(authService: AuthService(), authLocalDataSource: AuthLocalDataSource(widget.sf));
     _courseRepository = CourseRepository(courseService: CourseService(_authRepository));
-    _categoryRepository =
-        CategoryRepository(categoryApiClient: CategoryApiClient());
+    _categoryRepository = CategoryRepository(categoryApiClient: CategoryApiClient());
     _skillRepository = SkillRepository(skillService: SkillService());
     _instructorRepository = InstructorRepository(instructorService: InstructorService());
     _moduleRepository = ModuleRepository(moduleService: ModuleService(_authRepository));
@@ -76,6 +79,7 @@ class _AppState extends State<App> {
     _quizRepository = QuizRepository(quizService: QuizService(_authRepository));
     _lessonRepository = LessonRepository(lessonService: LessonService(_authRepository));
     _cartRepository = CartRepository(CartService(_authRepository));
+    _paymentRepository = PaymentRepository(PaymentService(_authRepository));
 
 
   }
@@ -113,6 +117,9 @@ class _AppState extends State<App> {
         ),
         RepositoryProvider(
           create: (context) => _lessonRepository,
+        ),
+        RepositoryProvider(
+          create: (context) => _paymentRepository,
         ),
 
 
@@ -203,9 +210,9 @@ class _AppViewState extends State<AppView> {
         );
       },
       title: 'Course Demo',
-      theme: ThemeData(
-          fontFamily: 'Cabin'
-      ),
+      theme: lightMode,
+      darkTheme: darkMode,
+      themeMode: ThemeMode.light,
       debugShowCheckedModeBanner: false,
       initialRoute: RoutesName.splashPage,
       onGenerateRoute: Routes.generateRoute,

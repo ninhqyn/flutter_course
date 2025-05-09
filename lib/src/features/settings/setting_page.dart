@@ -31,7 +31,7 @@ class _SettingPageState extends State<SettingPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 16),
-            _sectionTitle('Membership'),
+            _sectionTitle('Theme'),
             _membershipTile(),
             const Divider(),
             _sectionTitle('Push Notification'),
@@ -87,11 +87,7 @@ class _SettingPageState extends State<SettingPage> {
                 // Handle share app
               },
             ),
-            const Divider(height: 32),
-            _logoutButton(),
-            const SizedBox(height: 8),
-            _emailText(),
-            const SizedBox(height: 24),
+
           ],
         ),
       ),
@@ -118,7 +114,7 @@ class _SettingPageState extends State<SettingPage> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           const Text(
-            'Free Membership',
+            'Dark Theme',
             style: TextStyle(
               fontSize: 16,
             ),
@@ -135,7 +131,7 @@ class _SettingPageState extends State<SettingPage> {
               ),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             ),
-            child: const Text('Upgrade'),
+            child: const Text('ON'),
           ),
         ],
       ),
@@ -209,34 +205,6 @@ class _SettingPageState extends State<SettingPage> {
     );
   }
 
-  Widget _logoutButton() {
-    return Center(
-      child: TextButton(
-        onPressed: () {
-          // Handle logout
-        },
-        child: const Text(
-          'Log out',
-          style: TextStyle(
-            color: Colors.red,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
 
-  Widget _emailText() {
-    return Center(
-      child: Text(
-        'thanhnamhcm@gmail.com\nEEE v1.1',
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 12,
-          color: Colors.grey[600],
-        ),
-      ),
-    );
-  }
+
 }

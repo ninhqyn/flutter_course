@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:learning_app/src/core/constants/type_constants.dart';
 
 import 'package:learning_app/src/features/all_categories/page/all_categories_page.dart';
-import 'package:learning_app/src/features/cart/bloc/cart_bloc.dart';
 import 'package:learning_app/src/features/course_detail/page/course_detail.dart';
 
 import 'package:learning_app/src/shared/models/category.dart';

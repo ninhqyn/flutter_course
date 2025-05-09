@@ -58,4 +58,8 @@ class ApiConstants{
   static const String clearCart ='/api/Cart/clear';
   static const String checkCart ='/api/Cart/check';
 
+  //Payment
+  static const String payment = "/api/payments";
+  static const String getAllPayment="/api/payments/history";
+
 }

@@ -6,11 +6,9 @@ import 'package:learning_app/src/data/repositories/quiz_repository.dart';
 import 'package:learning_app/src/features/quiz/bloc/quiz_detail/quiz_detail_bloc.dart';
 import 'package:learning_app/src/features/quiz/page/quiz_screen.dart';
 
-class QuizDetailPage extends StatelessWidget {
+class QuizDetailPage extends StatelessWidget{
+  const QuizDetailPage({super.key, required this.quiz});
   final Quiz quiz;
-
-  QuizDetailPage({super.key, required this.quiz});
-
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -18,31 +16,74 @@ class QuizDetailPage extends StatelessWidget {
           quiz: quiz,
           quizRepository: context.read<QuizRepository>()
       )..add(FetchQuizHistory()),
-      child: Scaffold(
+      child: QuizDetailView(quiz: quiz,),
+    );
+  }
+}
+
+class QuizDetailView extends StatefulWidget {
+  final Quiz quiz;
+  QuizDetailView({super.key, required this.quiz});
+
+  @override
+  State<QuizDetailView> createState() => _QuizDetailViewState();
+}
+
+class _QuizDetailViewState extends State<QuizDetailView> {
+  
+ final _scrollController = ScrollController();
+
+ @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+ void dispose() {
+    super.dispose();
+   _scrollController.dispose(); 
+ }
+ void _onScroll(){
+   if(_isBottom) {
+     context.read<QuizDetailBloc>().add(FetchQuizHistory());
+   }
+ }
+ bool get _isBottom{
+   if(!_scrollController.hasClients) return false;
+   final maxScroll = _scrollController.position.maxScrollExtent;
+   final currentScroll = _scrollController.offset;
+   return currentScroll >= (maxScroll * 0.9);
+ }
+
+ @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<QuizDetailBloc, QuizDetailState>(
+  builder: (context, state) {
+    if(state is QuizDetailLoaded || state is QuizDetailLoadMore){
+      final history = state is QuizDetailLoaded ? (state as QuizDetailLoaded).quizResults
+      :(state as QuizDetailLoadMore).quizResults;
+      return Scaffold(
         appBar: AppBar(
-          title: Text('Quiz Details'),
+          title: const Text('Quiz Details'),
           backgroundColor: Colors.lightBlue,
         ),
-        body: SafeArea(
-          child: BlocBuilder<QuizDetailBloc, QuizDetailState>(
-            builder: (context, state) {
-              if (state is QuizDetailLoading) {
-                return Center(child: CircularProgressIndicator());
-              } else if (state is QuizDetailLoaded) {
-                return _buildContent(context, state.quizResults);
-              } else {
-                return Center(child: Text('Failed to load quiz details'));
-              }
-            },
-          ),
-        ),
+        body:  _buildContent(context, history),
         bottomNavigationBar: _buildStartQuizButton(context),
-      ),
-    );
+
+      );
+    }
+      return const Scaffold(
+          body: Center(child: CircularProgressIndicator(),));
+
+
+  },
+);
   }
 
   Widget _buildContent(BuildContext context, List<QuizResultResponse> quizResults) {
     return SingleChildScrollView(
+      controller: _scrollController,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -57,14 +98,52 @@ class QuizDetailPage extends StatelessWidget {
 
           // Quiz History
           _buildQuizHistory(quizResults),
-
-
+          BlocBuilder<QuizDetailBloc, QuizDetailState>(
+            builder: (context, state) {
+              if(state is QuizDetailLoadMore){
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+              return Container();
+            },
+          )
+          
 
         ],
       ),
     );
   }
-
+ Widget _buildStartQuizButton(BuildContext context) {
+   return Container(
+     padding: const EdgeInsets.all(16),
+     margin: const EdgeInsets.only(bottom: 16),
+     child: ElevatedButton(
+       onPressed: () {
+         // Navigate to quiz taking page
+         Navigator.pushReplacement(context, MaterialPageRoute(builder: (_){
+           return QuizScreen(quiz:widget.quiz);
+         }));
+       },
+       style: ElevatedButton.styleFrom(
+         backgroundColor: Colors.blue.shade800,
+         foregroundColor: Colors.white,
+         padding: const EdgeInsets.symmetric(vertical: 16),
+         shape: RoundedRectangleBorder(
+           borderRadius: BorderRadius.circular(12),
+         ),
+         minimumSize: Size(double.infinity, 54),
+       ),
+       child: const Text(
+         'Start Quiz',
+         style: TextStyle(
+           fontSize: 18,
+           fontWeight: FontWeight.bold,
+         ),
+       ),
+     ),
+   );
+ }
   Widget _buildQuizHeader() {
     return Container(
       width: double.infinity,
@@ -80,7 +159,7 @@ class QuizDetailPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            quiz.quizName,
+            widget.quiz.quizName,
             style: TextStyle(
               color: Colors.white,
               fontSize: 24,
@@ -89,7 +168,7 @@ class QuizDetailPage extends StatelessWidget {
           ),
           SizedBox(height: 10),
           Text(
-            quiz.description,
+            widget.quiz.description,
             style: TextStyle(
               color: Colors.white.withOpacity(0.9),
               fontSize: 16,
@@ -117,22 +196,22 @@ class QuizDetailPage extends StatelessWidget {
           _buildInfoRow(
             icon: Icons.question_answer,
             title: 'Total Questions',
-            value: '${quiz.questions.length} questions',
+            value: '${widget.quiz.questions.length} questions',
           ),
           _buildInfoRow(
             icon: Icons.timer,
             title: 'Time Limit',
-            value: quiz.timeLimitMinutes != null ? '${quiz.timeLimitMinutes} minutes' : 'No time limit',
+            value: widget.quiz.timeLimitMinutes != null ? '${widget.quiz.timeLimitMinutes} minutes' : 'No time limit',
           ),
           _buildInfoRow(
             icon: Icons.check_circle_outline,
             title: 'Passing Score',
-            value: quiz.passingScore != null ? '${quiz.passingScore}%' : 'Not specified',
+            value: widget.quiz.passingScore != null ? '${widget.quiz.passingScore}%' : 'Not specified',
           ),
           _buildInfoRow(
             icon: Icons.calendar_today,
             title: 'Created',
-            value: quiz.createdAt != null ? _formatDate(quiz.createdAt!) : 'Not available',
+            value: widget.quiz.createdAt != null ? _formatDate(widget.quiz.createdAt!) : 'Not available',
           ),
         ],
       ),
@@ -318,14 +397,14 @@ class QuizDetailPage extends StatelessWidget {
             ),
           )
               : ListView.builder(
-            shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
-            itemCount: quizResults.length,
-            itemBuilder: (context, index) {
-              final result = quizResults[index];
-              return _buildHistoryCard(result);
-            },
-          ),
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: quizResults.length,
+                itemBuilder: (context, index) {
+                  final result = quizResults[index];
+                  return _buildHistoryCard(result);
+                },
+              ),
         ],
       ),
     );
@@ -458,36 +537,7 @@ class QuizDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildStartQuizButton(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      margin: const EdgeInsets.only(bottom: 16),
-      child: ElevatedButton(
-        onPressed: () {
-          // Navigate to quiz taking page
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_){
-            return QuizScreen(quiz: quiz);
-          }));
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blue.shade800,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          minimumSize: Size(double.infinity, 54),
-        ),
-        child: const Text(
-          'Start Quiz',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
+
 
   String _formatDate(DateTime date) {
     return '${date.day}/${date.month}/${date.year}';

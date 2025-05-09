@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:learning_app/src/core/routes/routes_name.dart';
 import 'package:learning_app/src/data/repositories/user_repository.dart';
 import 'package:learning_app/src/features/auth/bloc/auth_bloc/auth_bloc.dart';
+import 'package:learning_app/src/features/payment_history/payment_history.dart';
 import 'package:learning_app/src/features/profile/bloc/profile/profile_bloc.dart';
 
 
@@ -88,17 +89,10 @@ class _ProfilePageState extends State<ProfilePage> {
                     },
                   ),
                   _itemButton(
-                    icon: Icons.favorite_border,
-                    title: "Saved Courses",
-                    onTap: () {
-                      Navigator.pushNamed(context, RoutesName.savedPage);
-                    },
-                  ),
-                  _itemButton(
                     icon: Icons.payment,
                     title: "Payment History",
                     onTap: () {
-                      // Handle payment history action
+                      Navigator.push(context, MaterialPageRoute(builder: (_)=>const PaymentHistory()));
                     },
                   ),
                   _itemButton(

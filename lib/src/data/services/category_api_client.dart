@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:learning_app/src/core/constants/api_constants.dart';
-import 'package:learning_app/src/core/network/interceptor/token_interceptor.dart';
 import 'package:learning_app/src/shared/models/category.dart';
 
 class CategoryApiClient {

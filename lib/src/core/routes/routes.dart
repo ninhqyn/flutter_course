@@ -5,13 +5,11 @@ import 'package:learning_app/src/features/all_categories/page/all_categories_pag
 import 'package:learning_app/src/features/auth/pages/forgot_page.dart';
 import 'package:learning_app/src/features/auth/pages/login_page.dart';
 import 'package:learning_app/src/features/auth/pages/resend_page.dart';
-import 'package:learning_app/src/features/cart/page/cart_page.dart';
 import 'package:learning_app/src/features/certificate/certificate_detail.dart';
 import 'package:learning_app/src/features/certificate/certificate_screen.dart';
 import 'package:learning_app/src/features/home/page/home_page.dart';
 import 'package:learning_app/src/features/profile/page/profile_page.dart';
-import 'package:learning_app/src/features/profile/page/saved_page.dart';
-import 'package:learning_app/src/features/profile/page/setting_page.dart';
+import 'package:learning_app/src/features/settings/setting_page.dart';
 import 'package:learning_app/src/features/splash/splash/splash_page.dart';
 import 'package:learning_app/src/features/view_course/page/explore_page.dart';
 
@@ -36,8 +34,6 @@ class Routes {
         return MaterialPageRoute(builder: (context)=>const ProfilePage());
       case RoutesName.settingPage:
         return MaterialPageRoute(builder: (context)=>const SettingPage());
-      case RoutesName.savedPage:
-        return MaterialPageRoute(builder: (context)=>const SavedPage());
       case RoutesName.certificateScreen:
         return MaterialPageRoute(builder: (context)=>const CertificateListScreen());
       case RoutesName.certificateDetailScreen:

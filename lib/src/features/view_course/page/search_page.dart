@@ -208,6 +208,7 @@ class _SearchPageState extends State<SearchPage> {
                       borderRadius: BorderRadius.circular(8),
                       borderSide: const BorderSide(color: Colors.blue),
                     ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 12,horizontal: 10),
                     suffixIcon: _searchController.text.isNotEmpty
                         ? IconButton(
                       icon: const Icon(Icons.cancel_outlined),

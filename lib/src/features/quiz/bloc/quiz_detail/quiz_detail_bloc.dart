@@ -22,15 +22,14 @@ class QuizDetailBloc extends Bloc<QuizDetailEvent, QuizDetailState> {
   Future<void> _onFetchQuizHistory(FetchQuizHistory event,Emitter<QuizDetailState> emit) async{
     if(state is QuizDetailInitial){
       emit(QuizDetailLoading());
-      final quizResults = await quizRepository.getAllQuizResultsByQuizId(quiz.quizId);
+      final quizResults = await quizRepository.getAllQuizResultsByQuizId(quiz.quizId,page: _currentPage,pageSize: _pageSize);
       emit(QuizDetailLoaded(quizResults: quizResults,hasMax: quizResults.length < _pageSize));
+      print('fetch lan dau');
     }
-    if(state is QuizDetailLoaded){
-      //hasMax ?
+    else if(state is QuizDetailLoaded){
+      print('fetch lan 2');
       final currentState = state as QuizDetailLoaded;
       if(currentState.hasMax) return;
-
-
       //
       emit(QuizDetailLoadMore(quizResults: currentState.quizResults, hasMax: currentState.hasMax));
       //fetch more data
@@ -39,13 +38,10 @@ class QuizDetailBloc extends Bloc<QuizDetailEvent, QuizDetailState> {
       await Future.delayed(const Duration(seconds: 1));
 
       _currentPage++;
-     // final newCourses = await _fetchCourses(event.constant);
+      final newResult = await quizRepository.getAllQuizResultsByQuizId(quiz.quizId,page: _currentPage,pageSize: _pageSize);
 
-      return emit(QuizDetailLoaded(quizResults: currentState.quizResults, hasMax: false));
+      return emit(QuizDetailLoaded(quizResults: List.of(currentState.quizResults)..addAll(newResult), hasMax: newResult.length< _pageSize));
     }
 
   }
-  // Future<List<QuizResultResponse>> _fetchQuizHistory() async {
-  //
-  // }
 }

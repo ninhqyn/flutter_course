@@ -25,12 +25,16 @@ class PaymentService {
     };
   }
 
-  Future<List<PaymentModel>> getAllPaymentHistory() async {
+  Future<List<PaymentModel>> getAllPaymentHistory({int page = 1,int pageSize = 10}) async {
     try {
       _dio.interceptors.add(TokenInterceptor(authRepository: _authRepository, dio: _dio));
-      final response = await _dio.get(ApiConstants.getAllPayment); // Corrected endpoint
+      final response = await _dio.get(ApiConstants.getAllPayment,queryParameters: {
+        'page':page,
+        'pageSize':pageSize
+      }); // Corrected endpoint
       if (response.statusCode == 200) {
         final List<dynamic> paymentHistoryJson = response.data as List<dynamic>;
+        print('Fetch success: ${response.data}');
         return paymentHistoryJson.map((json) => PaymentModel.fromJson(json as Map<String, dynamic>)).toList();
       } else {
         print('Failed to get payment history. Status code: ${response.statusCode}');

@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 import 'package:learning_app/src/data/model/payment_model.dart';
 import 'package:learning_app/src/data/repositories/payment_repository.dart';
 import 'package:learning_app/src/features/payment_history/bloc/payment_history_bloc.dart';
 import 'package:learning_app/src/features/payment_history_detail/page/payment_history_detail.dart';
 import 'package:learning_app/src/features/payment_history/widget/payment_history_item.dart';
-
-import '../../data/model/payment_detail_model.dart';
-
 class PaymentHistory extends StatelessWidget {
   const PaymentHistory({super.key});
 
@@ -41,30 +37,59 @@ class PaymentHistoryView extends StatefulWidget {
 }
 
 class _PaymentHistoryViewState extends State<PaymentHistoryView> {
-  late PaymentHistoryBloc _paymentHistoryBloc;
+  final ScrollController _scrollController = ScrollController();
+  void _onScroll(){
+    if(_isBottom) {
+      context.read<PaymentHistoryBloc>().add(FetchHistory());
+    }
+  }
+
+  bool get _isBottom{
+    if(!_scrollController.hasClients) return false;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.offset;
+    return currentScroll >= (maxScroll * 0.9);
+  }
+  @override
+  void dispose() {
+    super.dispose();
+    _scrollController.dispose();
+  }
 
   @override
   void initState() {
     super.initState();
-    _paymentHistoryBloc = context.read<PaymentHistoryBloc>();
-    _paymentHistoryBloc.add(FetchHistory());
+    _scrollController.addListener(_onScroll);
+    Future.microtask(() => context.read<PaymentHistoryBloc>().add(FetchHistory()));
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PaymentHistoryBloc, PaymentHistoryState>(
       builder: (context, state) {
-        if(state is PaymentHistoryLoaded){
-          List<PaymentModel> paymentHistory = state.payments;
+        if(state is PaymentHistoryLoaded || state is PaymentHistoryLoadMore){
+          List<PaymentModel> paymentHistory = state is PaymentHistoryLoaded ?
+          (state).payments:(state as PaymentHistoryLoadMore).payments;
           if(paymentHistory.isNotEmpty){
-            return ListView.separated(
-              padding: const EdgeInsets.all(16.0),
-              itemCount: paymentHistory.length,
-              separatorBuilder: (context, index) => const Divider(height: 20),
-              itemBuilder: (context, index) =>
-                  GestureDetector(onTap: (){
-                    Navigator.push(context, MaterialPageRoute(builder: (_)=>PaymentHistoryDetail(paymentId: paymentHistory[index].paymentId)));
-                  },child: PaymentHistoryItem(paymentModel: paymentHistory[index])),
+            return Column(
+              children: [
+                Expanded(
+                  child: ListView.separated(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(16.0),
+                    itemCount: paymentHistory.length,
+                    separatorBuilder: (context, index) => const Divider(height: 20),
+                    itemBuilder: (context, index) =>
+                        GestureDetector(onTap: (){
+                          Navigator.push(context, MaterialPageRoute(builder: (_)=>PaymentHistoryDetail(paymentId: paymentHistory[index].paymentId)));
+                        },child: PaymentHistoryItem(paymentModel: paymentHistory[index])),
+                  ),
+                ),
+                if(state is PaymentHistoryLoadMore)
+                  const Center(
+                    child: CircularProgressIndicator(),
+                  )
+              ],
             );
           }
           return _noItem();

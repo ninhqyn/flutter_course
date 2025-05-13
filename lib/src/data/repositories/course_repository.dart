@@ -57,5 +57,8 @@ class CourseRepository{
     final results = await courseService.getAllCourseByInstructorId(instructorId);
     return results;
   }
-
+  Future<bool> enrollCourseFree(int courseId) async{
+    final result = await courseService.enrollCourseFree(courseId);
+    return result;
+  }
 }

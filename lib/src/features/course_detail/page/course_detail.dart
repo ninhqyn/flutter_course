@@ -27,9 +27,11 @@ class CourseDetail extends StatefulWidget {
   State<CourseDetail> createState() => _CourseDetailState();
 }
 class _CourseDetailState extends State<CourseDetail> {
+  late bool _isFree;
   @override
   void initState() {
     super.initState();
+    _isFree = widget.course.price == 0;
     context.read<CourseDetailBloc>().add(FetchDataCourseDetail(widget.course.courseId,widget.course.category.categoryId));
   }
   void handleNavigatorCourseDetail(Course course){
@@ -49,6 +51,9 @@ class _CourseDetailState extends State<CourseDetail> {
       return MyCourseDetailPage(courseId: courseId);
     })
     );
+  }
+  void handleEnrollFree(){
+    context.read<CourseDetailBloc>().add(EnrollCourseFree());
   }
   @override
   Widget build(BuildContext context) {
@@ -74,7 +79,7 @@ class _CourseDetailState extends State<CourseDetail> {
             ),
           );
         }
-
+        
         if (state is CartAddError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -97,12 +102,49 @@ class _CourseDetailState extends State<CourseDetail> {
         }
       },
   child: SafeArea(
-      child:  BlocBuilder<CourseDetailBloc, CourseDetailState>(
+      child:  BlocListener<CourseDetailBloc, CourseDetailState>(
+
+  listener: (context, state) {
+   if(state is CourseDetailEnrollSuccess){
+     ScaffoldMessenger.of(context).showSnackBar(
+       SnackBar(
+         content: Row(
+           children: [
+             const Icon(Icons.error, color: Colors.white),
+             const SizedBox(width: 10),
+             Expanded(child: Text('Sucess')),
+           ],
+         ),
+         backgroundColor: Colors.redAccent,
+         behavior: SnackBarBehavior.floating,
+         shape: RoundedRectangleBorder(
+           borderRadius: BorderRadius.circular(12),
+         ),
+         duration: const Duration(seconds: 3),
+         elevation: 6,
+       ),
+     );
+   }
+  },
+  child: BlocBuilder<CourseDetailBloc, CourseDetailState>(
         builder: (context, state) {
           if(state is CourseDetailLoading){
             return const Scaffold(
               body: Center(
                 child: CircularProgressIndicator(),
+              ),
+            ) ;
+          }
+          if(state is CourseDetailEnroll){
+            return const Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(),
+                    Text('Vui long cho')
+                  ],
+                ),
               ),
             ) ;
           }
@@ -144,6 +186,7 @@ class _CourseDetailState extends State<CourseDetail> {
           );
         },
       ),
+),
     ),
 );
   }
@@ -201,7 +244,7 @@ class _CourseDetailState extends State<CourseDetail> {
               ),
             ] else
             // Regular price (non-discounted) - centered vertically
-              Padding(
+              !_isFree ? Padding(
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 child: Text(
                   'Giá: ${widget.course.price.toCurrencyVND()}',
@@ -210,17 +253,19 @@ class _CourseDetailState extends State<CourseDetail> {
                     fontSize: 16,
                   ),
                 ),
-              ),
+              ):const Text('Mien phi',style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              )),
           ],
         ),
 
         // Right side - Cart and Enroll button
-        Row(
+        !_isFree ? Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             GestureDetector(
               onTap: () {
-                print('handle add to cart');
                 context.read<CartBloc>().add(AddToCart(widget.course.courseId));
               },
               child: Container(
@@ -261,6 +306,25 @@ class _CourseDetailState extends State<CourseDetail> {
                 )
             )
           ],
+        )
+            : TextButton(
+            onPressed: () {
+              handleEnrollFree();
+            },
+            style: TextButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5)
+                ),
+                backgroundColor: Colors.blue
+            ),
+            child: const Text(
+              'Enroll now',
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                  color: Colors.white
+              ),
+            )
         )
       ],
     );
@@ -664,6 +728,7 @@ class _CourseDetailState extends State<CourseDetail> {
             },child: SvgPicture.asset('assets/vector/arrow_left.svg')),
             Row(
               children: [
+
                 GestureDetector(onTap: (){
                   Navigator.push(context, MaterialPageRoute(builder: (_)=> const ShoppingCartPage()));
                 },child: SvgPicture.asset('assets/vector/cart.svg')),

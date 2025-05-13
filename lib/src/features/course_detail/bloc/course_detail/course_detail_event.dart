@@ -13,3 +13,4 @@ final class UpdateEnrollment extends CourseDetailEvent{
 
   UpdateEnrollment({required this.courseId});
 }
+final class EnrollCourseFree extends CourseDetailEvent{}

@@ -15,7 +15,7 @@ class QuizDetailPage extends StatelessWidget{
       create: (context) => QuizDetailBloc(
           quiz: quiz,
           quizRepository: context.read<QuizRepository>()
-      )..add(FetchQuizHistory()),
+      ),
       child: QuizDetailView(quiz: quiz,),
     );
   }
@@ -35,8 +35,11 @@ class _QuizDetailViewState extends State<QuizDetailView> {
 
  @override
   void initState() {
+
+
     super.initState();
     _scrollController.addListener(_onScroll);
+   Future.microtask(() => context.read<QuizDetailBloc>().add(FetchQuizHistory()));
   }
 
   @override
@@ -44,9 +47,23 @@ class _QuizDetailViewState extends State<QuizDetailView> {
     super.dispose();
    _scrollController.dispose(); 
  }
- void _onScroll(){
-   if(_isBottom) {
+ void _onScroll() {
+   if (_isBottom && !_isLoading) {
+     _isLoading = true;
      context.read<QuizDetailBloc>().add(FetchQuizHistory());
+   }
+ }
+
+ bool _isLoading = false;
+
+ @override
+ void didUpdateWidget(QuizDetailView oldWidget) {
+   super.didUpdateWidget(oldWidget);
+
+   // Reset _isLoading khi state thay đổi
+   final state = context.read<QuizDetailBloc>().state;
+   if (state is QuizDetailLoaded) {
+     _isLoading = false;
    }
  }
  bool get _isBottom{

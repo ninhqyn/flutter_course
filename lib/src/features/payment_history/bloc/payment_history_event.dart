@@ -4,3 +4,4 @@ part of 'payment_history_bloc.dart';
 sealed class PaymentHistoryEvent {}
 final class FetchHistory extends PaymentHistoryEvent{
 }
+

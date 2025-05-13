@@ -87,12 +87,15 @@ class QuizService {
       throw Exception('An unexpected error occurred');
     }
   }
-  Future<List<QuizResultResponse>> getAllQuizResultsByQuizId(int quizId) async {
+  Future<List<QuizResultResponse>> getAllQuizResultsByQuizId(int quizId,{int page = 1, int pageSize = 10}) async {
     // Thêm token interceptor để xử lý xác thực
     _dio.interceptors.add(TokenInterceptor(authRepository: _authRepository, dio: _dio));
 
     try {
-      final response = await _dio.get('${ApiConstants.getAllQuizResult}/$quizId');
+      final response = await _dio.get('${ApiConstants.getAllQuizResult}/$quizId',queryParameters: {
+        'page':page,
+        'pageSize':pageSize
+      });
 
       debugPrint('Request URL: ${_dio.options.baseUrl}${ApiConstants.getAllQuizResult}/$quizId');
 

@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:learning_app/src/data/model/answer.dart';
 import 'package:learning_app/src/data/model/answer_select.dart';
 import 'package:learning_app/src/data/model/quiz.dart';
 import 'package:learning_app/src/data/model/quiz_result_request.dart';

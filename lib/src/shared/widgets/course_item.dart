@@ -94,7 +94,7 @@ class CourseItem extends StatelessWidget {
                       return SizedBox(
                         width: constraints.maxWidth,
                         child: Text(
-                          course.price.toCurrencyVND(),
+                          course.price == 0 ?  'Free': course.price.toCurrencyVND(),
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 17,

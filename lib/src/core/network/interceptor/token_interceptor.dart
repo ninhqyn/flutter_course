@@ -1,7 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:learning_app/src/core/constants/api_constants.dart';
-import 'package:learning_app/src/data/data_scources/auth_local_data_source.dart';
-import 'package:learning_app/src/data/model/token_model.dart';
 import 'package:learning_app/src/data/repositories/auth_repository.dart';
 
 class TokenInterceptor extends Interceptor {

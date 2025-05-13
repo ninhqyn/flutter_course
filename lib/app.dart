@@ -137,7 +137,7 @@ class _AppState extends State<App> {
               return AuthBloc(authRepository: _authRepository);
             }),
             BlocProvider(create: (_){
-              return MyCourseBloc(courseRepository: _courseRepository)..add(FetchDataMyCourse());
+              return MyCourseBloc(courseRepository: _courseRepository);
             }),
             BlocProvider(create: (_){
               return MyCourseDetailBloc(courseRepository: _courseRepository, moduleRepository: _moduleRepository, quizRepository: _quizRepository);

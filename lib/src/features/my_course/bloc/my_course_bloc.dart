@@ -18,6 +18,7 @@ class MyCourseBloc extends Bloc<MyCourseEvent, MyCourseState> {
   Future<void> _onFetchData(FetchDataMyCourse event,Emitter<MyCourseState> emit) async{
     emit(MyCourseLoading());
     final myCourse = await courseRepository.getAllUserCourse();
+    print(myCourse.length);
     emit(MyCourseLoaded(myCourse: myCourse));
   }
 }

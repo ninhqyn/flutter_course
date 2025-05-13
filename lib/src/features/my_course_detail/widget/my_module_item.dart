@@ -113,10 +113,14 @@ class MyModuleItem extends StatelessWidget {
   }
 
   Widget _buildCompletionIndicator(UserModule module) {
-    // Tính toán tiến độ hoàn thành của module
     int completedLessons = module.lessons.where((lesson) => lesson.isCompleted).length;
-    double completionPercentage = completedLessons / module.lessonCount;
+    double completionPercentage;
 
+    if (module.lessonCount > 0) {
+      completionPercentage = completedLessons / module.lessonCount;
+    } else {
+      completionPercentage = 0.0; // Or some other appropriate default value
+    }
     return Expanded(
       child: Row(
         children: [

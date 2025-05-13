@@ -67,7 +67,7 @@ class CourseAllItem extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  course.price.toCurrencyVND(),
+                  course.price != 0 ? course.price.toCurrencyVND() :"Free",
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                 ),
 

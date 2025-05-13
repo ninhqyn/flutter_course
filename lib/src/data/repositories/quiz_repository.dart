@@ -35,7 +35,7 @@ class QuizRepository {
     //   throw Exception('Error to submit quiz');
     // }
   }
-  Future<List<QuizResultResponse>> getAllQuizResultsByQuizId(int quizId) async {
-    return await quizService.getAllQuizResultsByQuizId(quizId);
+  Future<List<QuizResultResponse>> getAllQuizResultsByQuizId(int quizId,{int page = 1, int pageSize = 10}) async {
+    return await quizService.getAllQuizResultsByQuizId(quizId,page: page,pageSize: pageSize);
   }
 }

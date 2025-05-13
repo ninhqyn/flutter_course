@@ -212,6 +212,19 @@ class CourseService {
       return const <Course>[];
     }
   }
+  Future<bool> enrollCourseFree(int courseId) async{
+    _dio.interceptors.add(TokenInterceptor(authRepository: _authRepository, dio: _dio));
+    try{
+      final response = await _dio.post('${ApiConstants.enrollCourseFree}/$courseId');
+      if (response.statusCode == 200) {
+        return true;
+      }
+      return false;
+    } on DioException catch(e){
+      debugPrint('Error enroll course: ${e.message}');
+      return false;
+    }
+  }
 
 
 }

@@ -10,6 +10,7 @@ class ApiConstants{
   static const String userCourse = '/api/Course/user-courses';
   static const String checkEnrollment = '/api/Course/check-enrollment';
   static const String courseByInstructorId = '/api/Course/instructor';
+  static const String enrollCourseFree = '/api/Course/enroll-free';
   //Category
   static const String category='api/Category';
 

@@ -11,6 +11,14 @@ final class CourseDetailLoading extends CourseDetailState{
   @override
   List<Object?> get props => [];
 }
+final class CourseDetailEnrollSuccess extends CourseDetailState{
+  @override
+  List<Object?> get props => [];
+}
+final class CourseDetailEnroll extends CourseDetailState{
+  @override
+  List<Object?> get props => [];
+}
 final class CourseDetailLoaded extends CourseDetailState{
   final int courseId;
   final List<Skill> skills;

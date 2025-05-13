@@ -30,6 +30,23 @@ class CourseDetailBloc extends Bloc<CourseDetailEvent, CourseDetailState> {
   }) : super(CourseDetailInitial()) {
     on<FetchDataCourseDetail>(_onFetchDataCourseDetail);
     on<UpdateEnrollment>(_onUpdateEnrollment);
+    on<EnrollCourseFree>(_onEnrollCourseFree);
+  }
+  Future<void> _onEnrollCourseFree(EnrollCourseFree event,Emitter<CourseDetailState> emit) async{
+    if(state is CourseDetailLoaded){
+      final currentState = state as CourseDetailLoaded;
+      emit(CourseDetailEnroll());
+      final result = await courseRepository.enrollCourseFree(currentState.courseId);
+      await Future.delayed(Duration(seconds: 2));
+      if(result){
+        emit(CourseDetailEnrollSuccess());
+        emit (currentState.copyWith(isEnrollment: true));
+      }else{
+        emit (currentState.copyWith(isEnrollment: false));
+      }
+
+    }
+    //
   }
   Future<void> _onUpdateEnrollment(UpdateEnrollment event,Emitter<CourseDetailState> emit )async{
     final isEnrollment  =await courseRepository.checkEnrollment(event.courseId);

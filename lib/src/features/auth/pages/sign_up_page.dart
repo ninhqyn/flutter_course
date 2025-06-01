@@ -66,7 +66,7 @@ class SignUpPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'Sign up',
+                          'Đăng ký',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 28,
@@ -79,7 +79,7 @@ class SignUpPage extends StatelessWidget {
                             context.read<SignUpBloc>().add(UserNameChanged(userName: value));
                           },
                           decoration:  InputDecoration(
-                            hintText: 'User name',
+                            hintText: 'Tên hiển thị',
                             errorText: state.nameError.isEmpty ? null : state.nameError,
                             border: const OutlineInputBorder(
                               borderSide: BorderSide(width: 2.0),
@@ -120,7 +120,7 @@ class SignUpPage extends StatelessWidget {
                           },
                           obscureText: !state.isShowPassword,
                           decoration: InputDecoration(
-                            hintText: 'Password',
+                            hintText: 'Mật khẩu',
                             errorText: state.passwordError.isEmpty ? null : state.passwordError,
                             border: const OutlineInputBorder(
                               borderSide: BorderSide(width: 2.0),
@@ -152,7 +152,7 @@ class SignUpPage extends StatelessWidget {
                           },
                           obscureText: !state.isShowConfirmPassword,
                           decoration: InputDecoration(
-                            hintText: 'Confirm password',
+                            hintText: 'Xác thực mật khẩu',
                             errorText: state.confirmPasswordError.isEmpty ? null : state.confirmPasswordError,
                             border: const OutlineInputBorder(
                               borderSide: BorderSide(width: 2.0),
@@ -180,7 +180,7 @@ class SignUpPage extends StatelessWidget {
                         TextButton(
                           onPressed: () {},
                           child: const Text(
-                            'Forgot password?',
+                            'Quên mật khẩu?',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 15,
@@ -205,7 +205,7 @@ class SignUpPage extends StatelessWidget {
                               ),
                             ),
                             child: const Text(
-                              'Sign up', // Changed to "Log in" to match the second image
+                              'Đăng ký', // Changed to "Log in" to match the second image
                               style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w500,
@@ -246,7 +246,7 @@ class SignUpPage extends StatelessWidget {
                 handleNavigator(context);
               },
               child: const Text(
-                'I have an account',
+                'Đã  có tài khoản ?',
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,

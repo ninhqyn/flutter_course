@@ -7,6 +7,7 @@ class Quiz {
   int? passingScore;
   int? timeLimitMinutes;
   int orderIndex;
+  bool? isFinal;
   DateTime? createdAt;
   DateTime? updatedAt;
   List<Question> questions;
@@ -18,6 +19,7 @@ class Quiz {
     required this.description,
     this.passingScore,
     this.timeLimitMinutes,
+    this.isFinal,
     required this.orderIndex,
     this.createdAt,
     this.updatedAt,
@@ -38,6 +40,7 @@ class Quiz {
       passingScore: json['passingScore'],
       timeLimitMinutes: json['timeLimitMinutes'],
       orderIndex: json['orderIndex'],
+      isFinal: json['isFinal'] ,
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])
           : null,

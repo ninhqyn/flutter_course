@@ -115,15 +115,16 @@ class _LoginPageState extends State<LoginPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Hello!',
+              'Xin chào!',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
             Text(
-              'Welcome to the world of great '
-                  'courses \nfrom best instructors.',
+
+              'Chào mừng đến với thế giới của những khóa'
+              ' học tuyệt vời từ những giảng viên giỏi nhất.',
               style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w400,
@@ -152,22 +153,22 @@ class _LoginPageState extends State<LoginPage> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             // Nút "Explore the app"
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  minimumSize: Size(buttonWidth,
-                      buttonHeight), // Điều chỉnh chiều rộng và chiều cao nút
-                ),
-                child: Text('Explore the app', style: _textStyle(Colors.white)),
-              ),
-            ),
+            // Container(
+            //   width: double.infinity,
+            //   padding: const EdgeInsets.symmetric(horizontal: 20),
+            //   child: ElevatedButton(
+            //     onPressed: () {},
+            //     style: ElevatedButton.styleFrom(
+            //       backgroundColor: Colors.blueAccent,
+            //       shape: RoundedRectangleBorder(
+            //         borderRadius: BorderRadius.circular(8),
+            //       ),
+            //       minimumSize: Size(buttonWidth,
+            //           buttonHeight), // Điều chỉnh chiều rộng và chiều cao nút
+            //     ),
+            //     child: Text('Explore the app', style: _textStyle(Colors.white)),
+            //   ),
+            // ),
             // Nút "Login"
             Container(
               width: double.infinity,
@@ -187,19 +188,19 @@ class _LoginPageState extends State<LoginPage> {
                   minimumSize: Size(buttonWidth,
                       buttonHeight), // Điều chỉnh chiều rộng và chiều cao nút
                 ),
-                child: Text('Login', style: _textStyle(Colors.black)),
+                child: Text('Đăng nhập', style: _textStyle(Colors.black)),
               ),
             ),
             // Text "New here?" và "Create account"
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('New here? ', style: _textStyle(Colors.black)),
+                Text('Bạn không có tài khoản ?', style: _textStyle(Colors.black)),
                 TextButton(onPressed: () {
                   handleNavigator(context);
 
                 },
-                child: Text('Create account', style: _textStyle(Colors.blueAccent))),
+                child: Text('Tạo ngay', style: _textStyle(Colors.blueAccent))),
               ],
             ),
           ],
@@ -214,7 +215,7 @@ class _LoginPageState extends State<LoginPage> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           const Text(
-            'Log in or sign up',
+            'Đăng nhập hoặc  đăng ký',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -235,7 +236,7 @@ class _LoginPageState extends State<LoginPage> {
                   )
               ),
               child: const Text(
-                'Skip',
+                'Đóng',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 15,
@@ -266,7 +267,7 @@ class _LoginPageState extends State<LoginPage> {
             SvgPicture.asset('assets/vector/google.svg'),
             const SizedBox(width: 8),
             const Text(
-              'Sign in with Google',
+              'Đăng nhập với Google',
               style: TextStyle(
                 color: Colors.black,
                 fontWeight: FontWeight.w500,
@@ -296,35 +297,9 @@ class _LoginPageState extends State<LoginPage> {
             SvgPicture.asset('assets/vector/facebook.svg'),
             const SizedBox(width: 8),
             const Text(
-              'Sign in with Facebook', // Fixed text here
+              'Đăng nhập với facebook', // Fixed text here
               style: TextStyle(
                 color: Colors.black,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-    Widget appleButton(BuildContext context){
-      return ElevatedButton(
-        onPressed: () {},
-        style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.black,
-            minimumSize: const Size(double.infinity, 50),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8)
-            )
-        ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.apple, color: Colors.white),
-            SizedBox(width: 8),
-            Text(
-              'Sign in with Apple',
-              style: TextStyle(
-                color: Colors.white,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -353,7 +328,7 @@ class _LoginPageState extends State<LoginPage> {
             )
         ),
         child: const Text(
-          'Log in with email',
+          'Đăng nhập với gmail',
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.w500,
@@ -366,13 +341,13 @@ class _LoginPageState extends State<LoginPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('New here?'),
+            const Text('Bạn chưa có tài khoản ?'),
             TextButton(
               onPressed: () {
                 handleNavigator(context);
               },
               child: const Text(
-                'Create account',
+                'Đăng ký',
                 style: TextStyle(
                   color: Colors.blueAccent,
                   fontWeight: FontWeight.w500,
@@ -386,7 +361,7 @@ class _LoginPageState extends State<LoginPage> {
     Widget widgetInfo(){
       return Center(
         child: Text(
-          'By creating account or skipping this screen,\nyou accept our Terms of Use',
+          'khoản hoặc bỏ qua màn hình này, bạn chấp nhận Điều khoản sử dụng của chúng tôi',
           textAlign: TextAlign.center,
           style: TextStyle(
             color: Colors.black.withOpacity(0.6),
@@ -425,8 +400,6 @@ class _LoginPageState extends State<LoginPage> {
                   facebookButton(context),
                   const SizedBox(height: 12),
                   // Apple sign in button
-                  appleButton(context),
-                  const SizedBox(height: 15),
                   const Center(child: Text('OR')),
                   const SizedBox(height: 15),
                   // Email login button

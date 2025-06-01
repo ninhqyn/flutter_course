@@ -40,12 +40,12 @@ class _AllCourseViewState extends State<AllCourseView> {
     super.initState();
     context.read<AllItemBloc>().add(FetchDataAllItem(widget.constant));
     if (widget.constant == TypeConstant.courseFavorite) {
-      headName = 'All Favorite Course';
+      headName = 'Khóa học phổ biến';
     }
     else if (widget.constant == TypeConstant.courseSuggest) {
-      headName = 'All Suggest Course';
+      headName = 'Gợi  ý cho bạn';
     } else {
-      headName = 'All Course';
+      headName = 'Tất cả khóa học';
     }
 
     _scrollController.addListener(_onScroll);
@@ -164,7 +164,7 @@ class _AllCourseViewState extends State<AllCourseView> {
               )
           ),
           Text(headName, style: const TextStyle(
-              fontSize: 15,
+              fontSize: 20,
               fontWeight: FontWeight.bold
           ),
           ),

@@ -6,6 +6,8 @@ import 'package:learning_app/src/data/repositories/user_repository.dart';
 import 'package:learning_app/src/features/auth/bloc/auth_bloc/auth_bloc.dart';
 import 'package:learning_app/src/features/payment_history/payment_history.dart';
 import 'package:learning_app/src/features/profile/bloc/profile/profile_bloc.dart';
+import 'package:learning_app/src/features/profile/page/edit_profile/page/profile_edit_page.dart';
+import 'package:learning_app/src/features/profile/page/my_certificate/page/certificate_page.dart';
 
 
 class ProfilePage extends StatefulWidget{
@@ -54,7 +56,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    color: Colors.pink,
+                    color: Colors.lightBlue,
                     height: y,
                   ),
                   const SizedBox(
@@ -83,28 +85,38 @@ class _ProfilePageState extends State<ProfilePage> {
                   const SizedBox(height: 20),
                   _itemButton(
                     icon: Icons.edit,
-                    title: "Edit Profile",
+                    title: "Cập nhật thông tin tài khoản",
                     onTap: () {
-                      // Handle edit profile action
+                      Navigator.push(context, MaterialPageRoute(builder: (_){
+                        return ProfileEditPage();
+                      })
+                      );
                     },
                   ),
                   _itemButton(
                     icon: Icons.payment,
-                    title: "Payment History",
+                    title: "Lịch sử thanh toán",
                     onTap: () {
                       Navigator.push(context, MaterialPageRoute(builder: (_)=>const PaymentHistory()));
                     },
                   ),
                   _itemButton(
+                    icon: Icons.bookmark_border,
+                    title: "Chứng chỉ của tôi",
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_)=>CertificatesPage()));
+                    },
+                  ),
+                  _itemButton(
                     icon: Icons.settings,
-                    title: "App Settings",
+                    title: "Cài đặt",
                     onTap: () {
                       Navigator.pushNamed(context, RoutesName.settingPage);
                     },
                   ),
                   _itemButton(
                     icon: Icons.login_outlined,
-                    title: 'Logout',
+                    title: 'Đăng xuất',
                     onTap: () {
                       // Hiển thị hộp thoại xác nhận
                       showDialog(

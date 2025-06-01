@@ -81,7 +81,7 @@ class _SearchPageState extends State<SearchPage> {
             const Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                'Browse categories',
+                'Danh mục khóa học',
                 style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.bold
@@ -188,6 +188,7 @@ class _SearchPageState extends State<SearchPage> {
 
   PreferredSize _appBar(BuildContext context) {
     final hasInput = _searchController.text.isNotEmpty;
+
     return PreferredSize(
       preferredSize: const Size(double.infinity, 50),
       child: Padding(
@@ -196,49 +197,59 @@ class _SearchPageState extends State<SearchPage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Expanded(
-                child: TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: 'What are you looking for?',
-                    prefixIcon: hasInput ? null: const Icon(Icons.search),
-                    border: InputBorder.none,
-                    filled: true,
-                    fillColor: const Color(0xFFF3F5F6),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Colors.blue),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 12,horizontal: 10),
-                    suffixIcon: _searchController.text.isNotEmpty
-                        ? IconButton(
-                      icon: const Icon(Icons.cancel_outlined),
-                      onPressed: () {
-                        setState(() {
-                          _searchController.clear();
-                        });
-
-                        context.read<SearchBloc>().add(TextSearchChanged(''));
-                      },
-                    )
-                        : null,
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Bạn đang tìm kiếm gì?',
+                  prefixIcon: hasInput
+                      ? null
+                      : Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Icon(Icons.search, size: 20),
                   ),
-                  onChanged: (value) {
-                    setState(() {
-
-                    });
-                    context.read<SearchBloc>().add(TextSearchChanged(value));
-                  },
-                )
+                  prefixIconConstraints: const BoxConstraints(
+                    minWidth: 30,
+                    minHeight: 30,
+                  ),
+                  border: InputBorder.none,
+                  filled: true,
+                  fillColor: const Color(0xFFF3F5F6),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Colors.blue),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                  suffixIcon: hasInput
+                      ? IconButton(
+                    icon: const Icon(Icons.cancel_outlined),
+                    onPressed: () {
+                      setState(() {
+                        _searchController.clear();
+                      });
+                      context.read<SearchBloc>().add(TextSearchChanged(''));
+                    },
+                  )
+                      : null,
+                ),
+                onChanged: (value) {
+                  setState(() {});
+                  context.read<SearchBloc>().add(TextSearchChanged(value));
+                },
+              ),
             ),
             const SizedBox(width: 10),
-            GestureDetector(onTap: (){
-              Navigator.push(context, MaterialPageRoute(builder: (_){
-                return const ShoppingCartPage();
-              }));
-            },child: SvgPicture.asset('assets/vector/cart.svg', width: 34, height: 34))
+            GestureDetector(
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) {
+                  return const ShoppingCartPage();
+                }));
+              },
+              child: SvgPicture.asset('assets/vector/cart.svg', width: 34, height: 34),
+            ),
           ],
         ),
       ),
     );
   }
+
 }

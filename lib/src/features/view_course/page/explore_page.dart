@@ -81,7 +81,7 @@ class _ExplorePageState extends State<ExplorePage> {
                       return Align(
                         alignment: Alignment(alignment, 1),
                         child: const Text(
-                          '  Explore',
+                          '  Trang chủ',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -114,7 +114,7 @@ class _ExplorePageState extends State<ExplorePage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('   Categories',style: TextStyle(
+            const Text('   Danh mục khóa học',style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold
             ),),
@@ -125,13 +125,13 @@ class _ExplorePageState extends State<ExplorePage> {
                     handleNavigatorCategory(
                       state.categories
                     );
-                  }, child: const Text('View all',style: TextStyle(
+                  }, child: const Text('Xem tất cả',style: TextStyle(
                       fontWeight:FontWeight.w500,
                       fontSize: 15
                   ),));
                 }
                 return TextButton(onPressed: (){
-                }, child: const Text('View all',style: TextStyle(
+                }, child: const Text('VXem tất cả',style: TextStyle(
                     fontWeight:FontWeight.w500,
                     fontSize: 15
                 ),));
@@ -179,13 +179,13 @@ class _ExplorePageState extends State<ExplorePage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('   Suggest for you',style: TextStyle(
+            const Text('  Gợi ý cho bạn',style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold
             ),),
             TextButton(onPressed: (){
               handleNavigatorSuggest();
-            }, child: const Text('View all',style: TextStyle(
+            }, child: const Text('Xem tất cả',style: TextStyle(
               fontWeight:FontWeight.w500,
               fontSize: 15
             ),))
@@ -235,13 +235,13 @@ class _ExplorePageState extends State<ExplorePage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('   Favorite course',style: TextStyle(
+            const Text('   Khóa học phổ biến',style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold
             ),),
             TextButton(onPressed: (){
               handleNavigatorFavorite();
-            }, child: const Text('View all',style: TextStyle(
+            }, child: const Text('Xem tất cả',style: TextStyle(
                 fontWeight:FontWeight.w500,
                 fontSize: 15
             ),))

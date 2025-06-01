@@ -31,7 +31,10 @@ class QuizState {
           attemptNumber: 0,
           submissionDate: DateTime.now(),
           message: '',
-          success: false)
+          success: false,
+        certificateId: null,
+        certificateCreated: false
+      )
     );
   }
 

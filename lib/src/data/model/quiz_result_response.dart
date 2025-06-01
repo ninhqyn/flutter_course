@@ -8,6 +8,8 @@ class QuizResultResponse {
   final DateTime submissionDate;
   final String message;
   final bool success;
+  final int? certificateId;
+  final bool certificateCreated;
 
   QuizResultResponse({
     required this.resultId,
@@ -19,6 +21,8 @@ class QuizResultResponse {
     required this.submissionDate,
     required this.message,
     required this.success,
+    this.certificateId,
+    required this.certificateCreated,
   });
 
   factory QuizResultResponse.fromJson(Map<String, dynamic> json) {
@@ -32,6 +36,8 @@ class QuizResultResponse {
       submissionDate: DateTime.parse(json['submissionDate']),
       message: json['message'],
       success: json['success'],
+      certificateId: json['certificateId'], // có thể là null
+      certificateCreated: json['certificateCreated'],
     );
   }
 
@@ -46,6 +52,8 @@ class QuizResultResponse {
       'submissionDate': submissionDate.toIso8601String(),
       'message': message,
       'success': success,
+      'certificateId': certificateId,
+      'certificateCreated': certificateCreated,
     };
   }
 }

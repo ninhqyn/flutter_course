@@ -100,10 +100,22 @@ class _AllCourseByCategoryState extends State<AllCourseByCategory> {
                                   color: Colors.black.withOpacity(0.4)
                               ),
                               padding: const EdgeInsets.symmetric(horizontal: 10),
-                              child: const Text('5 course',style: TextStyle(
-                                  fontSize: 17,
-                                  color: Colors.white
-                              ),),
+                              child:  BlocBuilder<CourseByCategoryBloc, CourseByCategoryState>(
+                                builder: (context, state) {
+                                  if(state.status == FetchStatus.success){
+                                    if(state.courses.isNotEmpty){
+                                      return  Text('${state.courses.length} Khóa học',style: const TextStyle(
+                                          fontSize: 17,
+                                          color: Colors.white
+                                      ),);
+                                    }
+                                  }
+                                  return const Text(' Khóa học',style: TextStyle(
+                                      fontSize: 17,
+                                      color: Colors.white
+                                  ),);
+                                },
+                              ),
                             )
                           ],
                         ),

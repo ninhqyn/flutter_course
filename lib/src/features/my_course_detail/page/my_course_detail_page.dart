@@ -282,7 +282,7 @@ class _MyCourseDetailPageState extends State<MyCourseDetailPage>
   }
 
   Widget _buildQuizItem(Quiz quiz) {
-
+    bool isImportant = quiz.isFinal == null ? false : quiz.isFinal!;
     return InkWell(
       onTap: (){
         Navigator.push(context, MaterialPageRoute(builder: (_){
@@ -293,10 +293,10 @@ class _MyCourseDetailPageState extends State<MyCourseDetailPage>
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           border: Border.all(
-            color: /*isImportant ? Colors.red.shade300 : */Colors.grey.shade300,
+            color: isImportant ? Colors.red.shade300 : Colors.grey.shade300,
           ),
           borderRadius: BorderRadius.circular(8),
-          color: /*isImportant ? Colors.red.shade50 : */Colors.white,
+          color: isImportant ? Colors.red.shade50 : Colors.white,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -306,15 +306,15 @@ class _MyCourseDetailPageState extends State<MyCourseDetailPage>
                 Expanded(
                   child: Text(
                     'Test ${quiz.orderIndex}: ${quiz.quizName}',
-                    style: const TextStyle(
+                    style:  TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: /*isImportant ? Colors.red.shade700 :*/ Colors.black,
+                      color: isImportant ? Colors.red.shade700 : Colors.black,
                     ),
                   ),
                 ),
-                /*if (isImportant)
-                  const Icon(Icons.star, color: Colors.amber),*/
+                if (isImportant)
+                  const Icon(Icons.star, color: Colors.amber),
               ],
             ),
             const SizedBox(height: 8),

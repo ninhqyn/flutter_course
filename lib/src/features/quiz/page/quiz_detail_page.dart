@@ -82,7 +82,7 @@ class _QuizDetailViewState extends State<QuizDetailView> {
       :(state as QuizDetailLoadMore).quizResults;
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Quiz Details'),
+          title: const Text('Bài kiểm tra'),
           backgroundColor: Colors.lightBlue,
         ),
         body:  _buildContent(context, history),
@@ -152,7 +152,7 @@ class _QuizDetailViewState extends State<QuizDetailView> {
          minimumSize: Size(double.infinity, 54),
        ),
        child: const Text(
-         'Start Quiz',
+         'Làm bài',
          style: TextStyle(
            fontSize: 18,
            fontWeight: FontWeight.bold,
@@ -203,7 +203,7 @@ class _QuizDetailViewState extends State<QuizDetailView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Quiz Information',
+            'Thông tin bài kiểm tra',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -212,22 +212,22 @@ class _QuizDetailViewState extends State<QuizDetailView> {
           SizedBox(height: 16),
           _buildInfoRow(
             icon: Icons.question_answer,
-            title: 'Total Questions',
-            value: '${widget.quiz.questions.length} questions',
+            title: 'Tổng số câu hỏi',
+            value: '${widget.quiz.questions.length} câu hỏi',
           ),
           _buildInfoRow(
             icon: Icons.timer,
-            title: 'Time Limit',
+            title: 'Thời gian',
             value: widget.quiz.timeLimitMinutes != null ? '${widget.quiz.timeLimitMinutes} minutes' : 'No time limit',
           ),
           _buildInfoRow(
             icon: Icons.check_circle_outline,
-            title: 'Passing Score',
+            title: 'Điểm đậu',
             value: widget.quiz.passingScore != null ? '${widget.quiz.passingScore}%' : 'Not specified',
           ),
           _buildInfoRow(
             icon: Icons.calendar_today,
-            title: 'Created',
+            title: 'Ngày tạo',
             value: widget.quiz.createdAt != null ? _formatDate(widget.quiz.createdAt!) : 'Not available',
           ),
         ],
@@ -297,19 +297,13 @@ class _QuizDetailViewState extends State<QuizDetailView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Your Statistics',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+
           SizedBox(height: 16),
           Row(
             children: [
               Expanded(
                 child: _buildStatCard(
-                  title: 'Attempts',
+                  title: 'Đã nộp',
                   value: '${quizResults.length}',
                   icon: Icons.repeat,
                   color: Colors.orange,
@@ -318,7 +312,7 @@ class _QuizDetailViewState extends State<QuizDetailView> {
               SizedBox(width: 16),
               Expanded(
                 child: _buildStatCard(
-                  title: 'Average Score',
+                  title: 'Điểm trung bình',
                   value: '${averageScore.toStringAsFixed(1)}%',
                   icon: Icons.analytics,
                   color: Colors.green,
@@ -327,7 +321,7 @@ class _QuizDetailViewState extends State<QuizDetailView> {
               SizedBox(width: 16),
               Expanded(
                 child: _buildStatCard(
-                  title: 'Best Score',
+                  title: 'Điểm cao nhất',
                   value: '${bestScore.toStringAsFixed(1)}%',
                   icon: Icons.emoji_events,
                   color: Colors.amber,
@@ -393,7 +387,7 @@ class _QuizDetailViewState extends State<QuizDetailView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Quiz History',
+            'Lịch sử nộp bài',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,

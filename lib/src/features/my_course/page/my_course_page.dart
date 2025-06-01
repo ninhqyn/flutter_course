@@ -96,7 +96,7 @@ class _MyCoursePageState extends State<MyCoursePage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              'My course',
+              'Khóa học của tôi',
               style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,

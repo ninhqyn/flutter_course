@@ -96,7 +96,7 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Login',
+                      'Đăng nhập',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 28,
@@ -123,7 +123,7 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                       controller: _passwordController,
                       obscureText: !_isPasswordVisible,
                       decoration: InputDecoration(
-                        hintText: 'Type password',
+                        hintText: 'Mật khẩu',
                         border: const OutlineInputBorder(
                           borderSide: BorderSide(width: 2.0),
                         ),
@@ -150,7 +150,7 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                     ),
                     const SizedBox(height: 15),
                     const Text(
-                      'Forgot password?',
+                      'Quên mật khẩu?',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
@@ -172,7 +172,7 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                           ),
                         ),
                         child: const Text(
-                          'Login',
+                          'Đăng nhập',
                           style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w500,
@@ -210,7 +210,7 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                 handleNavigator(context);
               },
               child: const Text(
-                'Sign up',
+                'Đăng ký',
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
